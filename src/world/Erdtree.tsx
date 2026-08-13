@@ -10,10 +10,9 @@ import {
   MeshStandardMaterial,
   ShaderMaterial,
 } from 'three';
-import type { InstancedMesh, PointLight, Points } from 'three';
+import type { DirectionalLight, InstancedMesh, PointLight, Points } from 'three';
 import { scrollState, mapRange, damp } from '../scrollState';
-import { TREE } from './erdtree/branches';
-import { TERRAIN } from './terrain/heightfield';
+import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
 
 /**
  * EL ÁRBOL ÁUREO
@@ -49,6 +48,7 @@ export default function Erdtree({
   const branches = useRef<InstancedMesh>(null);
   const leaves = useRef<Points>(null);
   const light = useRef<PointLight>(null);
+  const sun = useRef<DirectionalLight>(null);
   const blaze = useRef(1);
 
   const tree = TREE;
@@ -115,7 +115,7 @@ export default function Erdtree({
           uMap: { value: spark },
           uTime: { value: 0 },
           uOpacity: { value: 1 },
-          uSize: { value: 300 },
+          uSize: { value: 185 * TREE_SCALE },
           uColor: { value: new Color('#f7d79a') },
         },
         vertexShader: /* glsl */ `
@@ -197,6 +197,8 @@ export default function Erdtree({
     foliage.uniforms.uOpacity.value = blaze.current;
     foliage.uniforms.uTime.value = reduced ? 0 : state.clock.elapsedTime;
     l.intensity = 6 + blaze.current * 90;
+    // Cuando el Árbol se apaga, el mundo entero se queda sin su luz.
+    if (sun.current) sun.current.intensity = 0.35 + blaze.current * 2.3;
 
     if (!reduced && leaves.current) {
       // La copa entera respira, muy lento. Un árbol no se queda quieto.
@@ -205,50 +207,58 @@ export default function Erdtree({
   });
 
   return (
-    <group position={[0, TERRAIN.centerHeight - 0.45, 0]}>
-      <instancedMesh
-        ref={branches}
-        args={[undefined, undefined, tree.matrices.length]}
-        material={bark}
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-      >
-        {/* Un cilindro de una unidad, centrado: cada instancia lo estira y lo
-            gira hasta su sitio. Seis lados alcanzan, y el follaje tapa el resto. */}
-        <cylinderGeometry args={[0.5, 0.62, 1, 6, 1]} />
-      </instancedMesh>
-
-      <points ref={leaves} geometry={leafGeometry} material={foliage} frustumCulled={false} />
-
-      <pointLight
-        ref={light}
-        position={[0, tree.height * 0.82, 0]}
-        color="#ffcf87"
-        distance={52}
-        decay={1.9}
-      />
-
-      {/* La sombra sale del Árbol, no del sol: es de donde viene la luz que
-          se ve. Un foco apuntando al suelo cuesta un solo pase de sombra,
-          mientras que la luz puntual de arriba costaría seis (una por cara
-          del cubo), y desde abajo el resultado es el mismo: el ramaje
-          dibujado sobre la roca. */}
-      <spotLight
-        position={[0, tree.height * 0.78, 0]}
-        angle={1.05}
-        penumbra={0.45}
-        intensity={reduced ? 60 : 90}
-        distance={70}
-        decay={1.85}
+    <>
+      {/* LA LUZ DEL MUNDO
+          A ciento setenta unidades, el Árbol ya no puede iluminar con una
+          fuente puntual: la intensidad caería con el cuadrado de la distancia
+          y no llegaría nada. Una fuente tan lejana se comporta como
+          direccional, con los rayos paralelos, y de paso es la que puede
+          proyectar sombras sobre toda la llanura con un solo mapa.
+          Viene de la dirección del Árbol, que es lo que hace que todo el
+          paisaje esté a contraluz. */}
+      <directionalLight
+        ref={sun}
+        position={[10, 78, -128]}
+        intensity={2.4}
         color="#ffd9a0"
         castShadow={shadowMap > 0}
         shadow-mapSize={[shadowMap || 1024, shadowMap || 1024]}
-        shadow-bias={-0.0006}
-        shadow-normalBias={0.035}
-        shadow-camera-near={1}
-        shadow-camera-far={60}
+        shadow-bias={-0.0008}
+        shadow-normalBias={0.04}
+        shadow-camera-near={40}
+        shadow-camera-far={320}
+        shadow-camera-left={-62}
+        shadow-camera-right={62}
+        shadow-camera-top={62}
+        shadow-camera-bottom={-62}
       />
-    </group>
+
+      <group position={TREE_POSITION} scale={TREE_SCALE}>
+        <instancedMesh
+          ref={branches}
+          args={[undefined, undefined, tree.matrices.length]}
+          material={bark}
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+        >
+        {/* Un cilindro de una unidad, centrado: cada instancia lo estira y lo
+            gira hasta su sitio. Seis lados alcanzan, y el follaje tapa el resto. */}
+          <cylinderGeometry args={[0.5, 0.62, 1, 6, 1]} />
+        </instancedMesh>
+
+        <points ref={leaves} geometry={leafGeometry} material={foliage} frustumCulled={false} />
+
+        {/* Luz de proximidad: solo le da volumen al propio ramaje. Lo que
+            ilumina el mundo es la direccional de abajo. */}
+        <pointLight
+          ref={light}
+          position={[0, tree.height * 0.82, 0]}
+          color="#ffcf87"
+          distance={tree.height * 2.4}
+          decay={1.6}
+        />
+      </group>
+    </>
   );
 }

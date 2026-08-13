@@ -46,11 +46,11 @@ function mulberry32(seed: number) {
  * del Árbol y a media distancia, que es donde se leen como lo que fueron.
  */
 const SITES: { x: number; z: number; angle: number; kind: 'colonnade' | 'wall' | 'arch' }[] = [
-  { x: -12, z: -10, angle: 0.4, kind: 'colonnade' },
-  { x: 13, z: -9, angle: -0.9, kind: 'wall' },
-  { x: -3, z: -18, angle: 1.9, kind: 'arch' },
-  { x: 19, z: 4, angle: 2.6, kind: 'colonnade' },
-  { x: -19, z: -2, angle: -0.3, kind: 'wall' },
+  { x: -17, z: -20, angle: 0.4, kind: 'colonnade' },
+  { x: 16, z: -28, angle: -0.9, kind: 'wall' },
+  { x: -7, z: -46, angle: 1.9, kind: 'arch' },
+  { x: 27, z: -8, angle: 2.6, kind: 'colonnade' },
+  { x: -32, z: -44, angle: -0.3, kind: 'wall' },
 ];
 
 export function buildRuins(seed = 5521): RuinsLayout {

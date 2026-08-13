@@ -35,7 +35,7 @@ export default function Core({ reduced }: { reduced: boolean }) {
 
     intensity.current = damp(intensity.current, target, 4, delta);
     mat.emissiveIntensity = intensity.current;
-    l.intensity = 4 + intensity.current * 15;
+    l.intensity = 6 + intensity.current * 46;
 
     const pulse = reduced ? 0 : Math.sin(t * 1.6) * 0.04;
     m.scale.setScalar(1 + pulse + reveal * 0.15);
@@ -47,9 +47,9 @@ export default function Core({ reduced }: { reduced: boolean }) {
   });
 
   return (
-    <group position={[0, -12, 28]}>
+    <group position={[42, -19, 2]}>
       <mesh ref={mesh}>
-        <icosahedronGeometry args={[0.85, 0]} />
+        <icosahedronGeometry args={[1.5, 0]} />
         <meshStandardMaterial
           ref={material}
           color="#e8c37a"
@@ -61,7 +61,7 @@ export default function Core({ reduced }: { reduced: boolean }) {
           toneMapped={false}
         />
       </mesh>
-      <pointLight ref={light} color="#e8c37a" intensity={10} distance={20} decay={1.7} />
+      <pointLight ref={light} color="#e8c37a" intensity={10} distance={54} decay={1.6} />
     </group>
   );
 }

@@ -39,7 +39,7 @@ export default function BrokenRing({ reduced }: { reduced: boolean }) {
   });
 
   return (
-    <group ref={root} position={[0, 14.5, -24]}>
+    <group ref={root} position={[14, 132, -196]} scale={5.6}>
       {SEGMENTS.map((start, i) => (
         <group
           key={i}

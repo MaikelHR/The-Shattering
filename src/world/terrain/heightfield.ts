@@ -4,119 +4,156 @@ import { fbm, makeNoise, ridged } from './noise';
 // ============================================================
 //  EL TERRENO
 // ------------------------------------------------------------
-//  Una meseta continental con el Árbol en el centro y acantilados
-//  que caen a la niebla. Nada de cilindros: la silueta la decide
-//  el ruido, igual que en el Árbol la decide la ramificación.
+//  Una llanura que llega hasta el horizonte, con una cordillera
+//  al fondo y un barranco cerca del centro.
 //
-//  El borde no es un círculo. El radio al que empieza el acantilado
-//  se modula con ruido angular, así que la costa entra y sale como
-//  una costa de verdad. Es el detalle que más se nota de lejos.
+//  La malla no es una cuadrícula sino un abanico de anillos
+//  concéntricos, y los radios crecen al cuadrado. Eso pone casi
+//  todos los vértices donde está la cámara y deja el horizonte
+//  con cuatro, que es exactamente el reparto que hace falta:
+//  media unidad de detalle a diez metros y ocho a doscientos.
+//  Con una cuadrícula uniforme, cubrir lo mismo costaría un
+//  millón de vértices para que el centro se viera igual.
+//
+//  El horizonte importa más de lo que parece: es lo que da la
+//  escala del Árbol. Sin planos intermedios entre el ojo y él,
+//  por grande que se lo haga se sigue leyendo como cercano.
 // ============================================================
 
 export interface TerrainParams {
   seed: number;
-  /** Lado del terreno en unidades de mundo. */
-  size: number;
-  /** Vértices por lado. Más resolución, más detalle y más memoria. */
-  segments: number;
-  /** Radio medio al que empieza el acantilado. */
-  edgeRadius: number;
-  /** Cuánto entra y sale la costa respecto de ese radio. */
-  edgeVariation: number;
-  /** Hasta dónde baja el acantilado antes de perderse en la niebla. */
-  cliffDepth: number;
-  /** Altura de las lomas de la meseta. */
+  /** Hasta dónde llega el suelo. Más allá, solo cielo. */
+  radius: number;
+  /** Anillos concéntricos. */
+  rings: number;
+  /** Sectores angulares. */
+  sectors: number;
+  /** Altura de las lomas de la llanura. */
   relief: number;
+  /** Dónde empieza a levantarse la cordillera y cuánto sube. */
+  mountainStart: number;
+  mountainHeight: number;
+  /** El barranco: a qué distancia del centro corre (en x), y cuánto baja. */
+  canyonX: number;
+  canyonDepth: number;
 }
 
 export const DEFAULT_TERRAIN: TerrainParams = {
   seed: 8213,
-  size: 150,
-  segments: 300,
-  edgeRadius: 27,
-  edgeVariation: 6.5,
-  cliffDepth: 46,
-  relief: 3.4,
+  radius: 290,
+  rings: 210,
+  sectors: 220,
+  relief: 4.2,
+  mountainStart: 78,
+  mountainHeight: 74,
+  canyonX: 47,
+  canyonDepth: 30,
 };
 
 export interface TerrainData {
   geometry: BufferGeometry;
-  /** Altura del suelo en el centro, donde se planta el Árbol. */
+  /** Altura del suelo en el centro. */
   centerHeight: number;
 }
 
 /**
  * La función de altura, aparte de la geometría.
  *
- * La necesitan la hierba y las rocas para sembrarse sobre el suelo: sin
- * esto habría que buscar el vértice más cercano en un array de noventa mil,
- * cuarenta mil veces.
+ * La necesitan la hierba, las piedras y las ruinas para sembrarse sobre el
+ * suelo: sin esto habría que buscar el vértice más cercano en un array de
+ * cuarenta mil, veinte mil veces.
  */
 export function makeHeightFunction(params: TerrainParams = DEFAULT_TERRAIN) {
   const noise = makeNoise(params.seed);
-  const edgeNoise = makeNoise(params.seed + 977);
-  const { edgeRadius, edgeVariation, cliffDepth, relief } = params;
+  const ridgeNoise = makeNoise(params.seed + 401);
+  const mountainNoise = makeNoise(params.seed + 977);
+  const { relief, mountainStart, mountainHeight, canyonX, canyonDepth } = params;
+
+  const smoothstep = (a: number, b: number, x: number) => {
+    const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
 
   return (x: number, z: number): number => {
     const r = Math.hypot(x, z);
-    const angle = Math.atan2(z, x);
 
-    // Lomas de la meseta, con crestas encima para que no sean dunas.
+    // Lomas de la llanura, con crestas encima para que no sean dunas.
     const rolling = fbm(noise, x * 0.021, z * 0.021, 5) * relief;
-    const rock = (ridged(noise, x * 0.075 + 40, z * 0.075 - 20, 4) - 0.5) * 1.5;
-    const detail = fbm(noise, x * 0.32, z * 0.32, 3) * 0.28;
+    const rock = (ridged(ridgeNoise, x * 0.075 + 40, z * 0.075 - 20, 4) - 0.5) * 1.6;
+    const detail = fbm(noise, x * 0.32, z * 0.32, 3) * 0.26;
 
-    // El borde entra y sale: sin esto el acantilado sería una circunferencia.
-    const wobble =
-      edgeNoise(Math.cos(angle) * 1.7, Math.sin(angle) * 1.7) * edgeVariation +
-      edgeNoise(Math.cos(angle) * 4.3 + 10, Math.sin(angle) * 4.3 - 5) * (edgeVariation * 0.45);
-    const start = edgeRadius + wobble;
+    // El barranco. Corre de norte a sur y se cierra por los extremos: es una
+    // grieta en el suelo, no una zanja infinita.
+    const across = Math.exp(-Math.pow((x - canyonX) / 9, 2));
+    const along = Math.exp(-Math.pow(z / 55, 4));
+    const canyon = -canyonDepth * across * along;
 
-    // Caída al vacío. La curva es cúbica: labio suave arriba y pared casi
-    // vertical en cuanto se pasa el borde.
-    const t = Math.max(0, Math.min(1, (r - start) / 9));
-    const fall = t * t * (3 - 2 * t) * cliffDepth * (0.35 + t * 0.65);
+    // La cordillera, que empieza pasada la llanura y crece hacia el horizonte.
+    const ridgeMask = smoothstep(mountainStart, mountainStart + 130, r);
+    // Dos capas: la masa general y las crestas. Sin las crestas, una
+    // cordillera se lee como un mar de dunas.
+    const range =
+      (fbm(mountainNoise, x * 0.0075, z * 0.0075, 4) * 0.5 + 0.5) * 0.5 +
+      Math.pow(ridged(mountainNoise, x * 0.018 + 9, z * 0.018 - 3, 4), 1.7) * 0.85;
+    const mountains = ridgeMask * range * mountainHeight;
 
-    // Una plataforma más llana donde se planta el Árbol.
-    const home = Math.max(0, 1 - r / 11);
-    const flatten = home * home * 0.75;
+    // Un rellano donde se planta lo que importa, para que las ruinas y la
+    // hierba no queden en una ladera.
+    const home = Math.max(0, 1 - r / 13);
+    const flatten = home * home * 0.7;
 
-    const base = rolling + rock + detail;
-    return base * (1 - flatten) + 1.1 * flatten - fall;
+    const plain = rolling + rock + detail;
+    return plain * (1 - flatten) + 0.9 * flatten + canyon + mountains;
   };
 }
 
 export function buildTerrain(params: TerrainParams = DEFAULT_TERRAIN): TerrainData {
   const height = makeHeightFunction(params);
-  const { size, segments } = params;
+  const { radius, rings, sectors } = params;
 
-  const positions = new Float32Array((segments + 1) * (segments + 1) * 3);
-  const uvs = new Float32Array((segments + 1) * (segments + 1) * 2);
-  const half = size / 2;
-  const step = size / segments;
+  // Un vértice central más `rings` anillos de `sectors` vértices.
+  const vertexCount = 1 + rings * sectors;
+  const positions = new Float32Array(vertexCount * 3);
+  const uvs = new Float32Array(vertexCount * 2);
 
-  let p = 0;
-  let t = 0;
-  for (let j = 0; j <= segments; j++) {
-    for (let i = 0; i <= segments; i++) {
-      const x = -half + i * step;
-      const z = -half + j * step;
-      positions[p++] = x;
-      positions[p++] = height(x, z);
-      positions[p++] = z;
-      uvs[t++] = i / segments;
-      uvs[t++] = j / segments;
+  positions[0] = 0;
+  positions[1] = height(0, 0);
+  positions[2] = 0;
+  uvs[0] = 0.5;
+  uvs[1] = 0.5;
+
+  for (let ring = 0; ring < rings; ring++) {
+    // El radio crece al cuadrado: el detalle se concentra cerca del ojo.
+    const t = (ring + 1) / rings;
+    const r = t * t * radius;
+
+    for (let s = 0; s < sectors; s++) {
+      const angle = (s / sectors) * Math.PI * 2;
+      const x = Math.cos(angle) * r;
+      const z = Math.sin(angle) * r;
+      const i = 1 + ring * sectors + s;
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = height(x, z);
+      positions[i * 3 + 2] = z;
+      uvs[i * 2] = x / radius;
+      uvs[i * 2 + 1] = z / radius;
     }
   }
 
   const indices: number[] = [];
-  for (let j = 0; j < segments; j++) {
-    for (let i = 0; i < segments; i++) {
-      const a = j * (segments + 1) + i;
-      const b = a + 1;
-      const c = a + segments + 1;
-      const d = c + 1;
-      indices.push(a, c, b, b, c, d);
+  // Abanico central.
+  for (let s = 0; s < sectors; s++) {
+    indices.push(0, 1 + ((s + 1) % sectors), 1 + s);
+  }
+  // Y un cinturón de quads por cada par de anillos.
+  for (let ring = 0; ring < rings - 1; ring++) {
+    const inner = 1 + ring * sectors;
+    const outer = inner + sectors;
+    for (let s = 0; s < sectors; s++) {
+      const next = (s + 1) % sectors;
+      indices.push(inner + s, outer + next, outer + s);
+      indices.push(inner + s, inner + next, outer + next);
     }
   }
 

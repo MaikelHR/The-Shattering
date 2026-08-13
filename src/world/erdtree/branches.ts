@@ -154,3 +154,21 @@ export function buildTree(params: TreeParams = DEFAULT_TREE): TreeGeometryData {
  * para colocar la luz y el emisor de los rayos).
  */
 export const TREE = buildTree(DEFAULT_TREE);
+
+/**
+ * DÓNDE ESTÁ Y CUÁNTO MIDE
+ * ------------------------------------------------------------
+ * El Árbol Áureo se ve desde toda la región y las murallas de la capital
+ * son enanas a su lado. Eso no se consigue solo agrandándolo: un objeto
+ * enorme y cercano se lee como un objeto normal. La escala sale de la
+ * distancia, de tener planos intermedios delante y de que la bruma se
+ * coma la base.
+ *
+ * Así que el Árbol vive lejos, en la cordillera del norte, y mide seis
+ * veces y media lo que medía cuando estaba plantado en el patio.
+ */
+export const TREE_SCALE = 8.6;
+export const TREE_POSITION: [number, number, number] = [6, 24, -178];
+
+/** Altura real del Árbol en el mundo, ya escalada. */
+export const TREE_WORLD_HEIGHT = TREE.height * TREE_SCALE;

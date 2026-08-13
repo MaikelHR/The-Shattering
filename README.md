@@ -140,10 +140,19 @@ esa mirada es composición (`frame`).
 - **La sombra sale del Árbol, no del sol**, que es de donde viene la luz que se ve.
   Un foco desde la copa cuesta un pase de sombra; la luz puntual costaría seis, una
   por cara del cubo.
+- **La escala del Árbol no sale de agrandarlo.** Es lo que más costó entender. Un
+  objeto enorme y cercano se lee como un objeto normal: lo que comunica el tamaño
+  es la distancia percibida, y esa la dan tres cosas juntas. Que esté lejos de
+  verdad (el Árbol vive a ciento ochenta unidades, en la cordillera del norte),
+  que haya planos intermedios entre el ojo y él (ruinas, llanura, montañas), y que
+  la bruma lo lave como lava todo lo lejano. Con eso, unas columnas de seis
+  unidades en primer plano dicen sin decir nada que el Árbol mide ciento treinta.
+- **El terreno es un abanico de anillos, no una cuadrícula.** Los radios crecen al
+  cuadrado, así que casi todos los vértices caen donde está la cámara y el
+  horizonte se lleva cuatro. Cubrir 290 unidades con una cuadrícula uniforme y el
+  mismo detalle cerca costaría un millón de vértices; así son cuarenta y seis mil.
 - **Las cámaras viven dentro del terreno.** En cuanto una se sale del borde, se ve
-  el límite del mundo y la meseta se lee como una isla de juguete. La única que
-  está fuera es la del capítulo IV, y es a propósito: mira la pared del acantilado
-  desde el vacío.
+  el límite del mundo y el suelo se lee como una isla de juguete.
 - `prefers-reduced-motion` se respeta con una regla simple: **el mundo solo se mueve
   cuando el usuario scrollea**. Se apaga el movimiento autónomo (el Árbol, el
   Anillo, el viento en la hierba, el latido de las raíces, el titileo de las

@@ -12,7 +12,7 @@ import BrokenRing from './BrokenRing';
 import Core from './Core';
 import CameraRig from './CameraRig';
 import Sky from './Sky';
-import { TREE } from './erdtree/branches';
+import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
 import Post from './Post';
 import { QUALITY, detectQuality, downgrade, isForced } from './quality';
 import type { Quality } from './quality';
@@ -40,7 +40,7 @@ export default function World({ reduced }: { reduced: boolean }) {
     <div className="world" aria-hidden="true">
       <Canvas
         shadows={q.shadowMap > 0}
-        camera={{ position: [0, 4, 24], fov: 45, near: 0.1, far: 300 }}
+        camera={{ position: [0, 8, 26], fov: 45, near: 0.5, far: 700 }}
         dpr={q.dpr}
         // Sin tone mapping en el renderer: lo aplica el composer al final de la
         // cadena, para que todos los efectos trabajen con luz lineal.
@@ -60,7 +60,7 @@ export default function World({ reduced }: { reduced: boolean }) {
           />
         )}
 
-        <fog attach="fog" args={[HAZE, 14, 66]} />
+        <fog attach="fog" args={[HAZE, 26, 330]} />
         <Sky />
 
         <Environment resolution={256} frames={1}>
@@ -72,8 +72,7 @@ export default function World({ reduced }: { reduced: boolean }) {
           <Lightformer form="rect" intensity={0.25} color="#3a2c16" scale={40} position={[0, -18, 0]} rotation={[-Math.PI / 2, 0, 0]} />
         </Environment>
 
-        <ambientLight intensity={0.09} />
-        <directionalLight position={[6, 16, 8]} intensity={0.45} color="#ffd9a0" />
+        <ambientLight intensity={0.12} />
 
         <Suspense fallback={null}>
           <Terrain />
@@ -87,14 +86,21 @@ export default function World({ reduced }: { reduced: boolean }) {
 
         {/* El emisor de los rayos: vive dentro de la copa, y son las ramas
             y las ruinas al pasar por delante las que recortan los haces. */}
-        <mesh ref={setSun} position={[0, TREE.height * 0.74 + 0.7, 0]}>
-          <sphereGeometry args={[0.6, 16, 16]} />
+        <mesh
+          ref={setSun}
+          position={[
+            TREE_POSITION[0],
+            TREE_POSITION[1] + TREE.height * 0.78 * TREE_SCALE,
+            TREE_POSITION[2],
+          ]}
+        >
+          <sphereGeometry args={[5, 16, 16]} />
           <meshBasicMaterial color="#f6cf96" toneMapped={false} fog={false} />
         </mesh>
 
         <Stars
-          radius={90}
-          depth={34}
+          radius={260}
+          depth={90}
           count={Math.round(2200 * q.particles) * (reduced ? 0.4 : 1)}
           factor={3.2}
           fade
@@ -103,8 +109,8 @@ export default function World({ reduced }: { reduced: boolean }) {
         {/* Las motas doradas que flotan alrededor del Árbol */}
         <Sparkles
           count={Math.round(110 * q.particles)}
-          scale={[30, 26, 30]}
-          position={[0, 5, 0]}
+          scale={[46, 30, 46]}
+          position={[0, 8, -8]}
           size={2.6}
           speed={reduced ? 0 : 0.18}
           color="#f0cf8a"
