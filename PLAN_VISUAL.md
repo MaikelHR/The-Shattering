@@ -161,11 +161,23 @@ cerrada, se lee como maqueta.**
    `--disable-backgrounding-occluded-windows`.
 
    Sigue a 180 fps en la Radeon RX 7600 con todo activado.
-2. **Terreno generado, no primitivas.** Malla subdividida desplazada con ruido
-   fractal, con las normales recalculadas: acantilados con silueta irregular.
-3. **Materiales PBR con proyección triplanar.** Una textura de roca (albedo +
-   normal + rugosidad) proyectada por los tres ejes, que es la única forma de que
-   no se estire en las paredes verticales. Sube a prioridad alta.
+2. ✅ **Terreno generado, no primitivas.** Hecho. 90.601 vértices desplazados con
+   ruido fractal más ruido de cresta (que es el que hace filos en vez de dunas), y
+   las normales recalculadas. El borde no es una circunferencia: el radio al que
+   empieza el acantilado se modula con ruido angular, así que la costa entra y sale
+   como una costa de verdad. Se genera al importar el módulo, en unos 100 ms.
+3. ✅ **Materiales PBR con proyección triplanar.** Hecho, y con dos capas: roca
+   oscura en lo empinado, hierba seca en lo llano, mezcladas por la pendiente. Es
+   lo que hace que se lea como paisaje y no como una piedra gigante, porque en la
+   naturaleza en las paredes no crece nada.
+
+   Texturas de Poly Haven (CC0): `dark_rock` y `aerial_grass_rock`, a 1K. Los JPG
+   que sirve Poly Haven pesaban 3 MB entre los cuatro mapas; convertidos a WebP con
+   el propio Chrome (no hay ImageMagick ni sharp en el equipo) quedaron en 965 KB.
+
+   El normal map se aplica **sin tangentes**: se perturba la normal del mundo
+   directamente. Un terreno no tiene UV que respetar, así que el sistema de
+   tangentes de three sobra.
 4. **Modelos escaneados y vegetación.** Rocas y ruinas de Poly Haven (CC0, son
    escaneos reales) sembradas con instancing, y hierba instanciada con viento, que
    es lo que llena el suelo en las referencias.
@@ -546,12 +558,18 @@ recorrido y da una razón para llegar hasta el final.
 
 Con imágenes y postprocesado, esto pasa de pesar nada a pesar de verdad. Presupuesto:
 
-| Concepto | Hoy | Objetivo |
-|---|---|---|
-| JS (gzip) | 345 KB | < 450 KB |
-| Imágenes | 0 | < 3,5 MB, con la primera vista < 1,2 MB |
-| Audio | 0 | < 250 KB |
-| Primer render útil | inmediato | < 2,5 s en conexión buena |
+| Concepto | Al empezar | Hoy | Objetivo |
+|---|---|---|---|
+| JS (gzip) | 345 KB | **541 KB** | < 450 KB |
+| Imágenes | 0 | 965 KB | < 3,5 MB, primera vista < 1,2 MB |
+| Audio | 0 | 0 | < 250 KB |
+| Primer render útil | inmediato | sin medir | < 2,5 s en conexión buena |
+
+**El JS se pasó del presupuesto** y hay que devolverlo: 541 contra 450 KB. Casi
+todo el exceso es el postprocesado (N8AO pesa lo suyo). La solución no es quitar
+efectos sino cargar el mundo 3D con `React.lazy` detrás del preloader, que ya
+estaba en la lista y ahora pasa a ser obligatorio: el HTML y el texto se sirven de
+inmediato y el motor llega después.
 
 Medidas:
 

@@ -6,7 +6,7 @@ import { scrollState, mapRange, damp } from '../scrollState';
 /**
  * LAS RAÍCES, BAJO LA CAPITAL
  * ------------------------------------------------------------
- * La luz que sigue encendida en la punta de la raíz, donde ya no
+ * La luz que sigue encendida en la pared del acantilado, donde ya no
  * llega la Gracia. Late siempre, pero se enciende de verdad en el
  * capítulo IV, justo después de que el Árbol se apague arriba: es
  * la misma luz, que se fue para abajo.
@@ -47,7 +47,7 @@ export default function Core({ reduced }: { reduced: boolean }) {
   });
 
   return (
-    <group position={[0, -4.5, 0]}>
+    <group position={[0, -12, 28]}>
       <mesh ref={mesh}>
         <icosahedronGeometry args={[0.85, 0]} />
         <meshStandardMaterial

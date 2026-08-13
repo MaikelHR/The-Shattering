@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, Lightformer, PerformanceMonitor, Sparkles, Stars } from '@react-three/drei';
 import { NoToneMapping } from 'three';
 import type { Mesh } from 'three';
-import Islands from './Islands';
+import Terrain from './Terrain';
 import Erdtree from './Erdtree';
 import BrokenRing from './BrokenRing';
 import Core from './Core';
@@ -57,7 +57,7 @@ export default function World({ reduced }: { reduced: boolean }) {
           />
         )}
 
-        <fog attach="fog" args={[HAZE, 26, 150]} />
+        <fog attach="fog" args={[HAZE, 20, 96]} />
         <Sky />
 
         <Environment resolution={256} frames={1}>
@@ -72,7 +72,9 @@ export default function World({ reduced }: { reduced: boolean }) {
         <ambientLight intensity={0.09} />
         <directionalLight position={[6, 16, 8]} intensity={0.45} color="#ffd9a0" />
 
-        <Islands reduced={reduced} />
+        <Suspense fallback={null}>
+          <Terrain />
+        </Suspense>
         <Erdtree reduced={reduced} shadowMap={q.shadowMap} />
         <BrokenRing reduced={reduced} />
         <Core reduced={reduced} />

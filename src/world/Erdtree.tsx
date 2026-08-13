@@ -13,6 +13,7 @@ import {
 import type { InstancedMesh, PointLight, Points } from 'three';
 import { scrollState, mapRange, damp } from '../scrollState';
 import { TREE } from './erdtree/branches';
+import { TERRAIN } from './terrain/heightfield';
 
 /**
  * EL ÁRBOL ÁUREO
@@ -204,7 +205,7 @@ export default function Erdtree({
   });
 
   return (
-    <group position={[0, 0.7, 0]}>
+    <group position={[0, TERRAIN.centerHeight - 0.45, 0]}>
       <instancedMesh
         ref={branches}
         args={[undefined, undefined, tree.matrices.length]}
@@ -236,7 +237,7 @@ export default function Erdtree({
       <spotLight
         position={[0, tree.height * 0.78, 0]}
         angle={1.05}
-        penumbra={0.85}
+        penumbra={0.45}
         intensity={reduced ? 12 : 18}
         distance={70}
         decay={1.2}
