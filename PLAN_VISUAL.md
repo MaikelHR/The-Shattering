@@ -209,7 +209,7 @@ actualización de three, que subió de 0.171 a 0.185 porque
 
 ---
 
-## Fase B — El Árbol de verdad
+## Fase B — El Árbol de verdad ✅ hecho
 
 **Lo que cambia:** el sujeto de la página deja de parecer un brócoli.
 
@@ -251,10 +251,38 @@ el mismo. Cambiar la semilla es cambiar de árbol, y eso queda como perilla en
 - `blaze` (el número que ya existe) apaga el emisivo y las hojas con la Fractura, y
   desprende una tanda de hojas que caen.
 
-### Riesgo
+### Cómo quedó
 
-Generar 4.000 matrices bloquea el hilo unos milisegundos en el arranque. Si molesta,
-se genera en el preloader, que igual va a estar esperando a las texturas.
+**3.168 ramas y 2.969 hojas, en dos llamadas de dibujo.** El Árbol se calcula al
+importar el módulo (la constante TREE de erdtree/branches.ts), así que la escena y
+World comparten el mismo objeto y la altura sale de ahí en vez de estar escrita a
+mano en dos sitios.
+
+Medido en una Radeon RX 7600: **180 fps** con la cadena de postprocesado completa,
+el Árbol, el Anillo y las partículas. Sobra margen: el techo de ese equipo no lo
+pone la escena.
+
+Dos cosas que hubo que ajustar contra el navegador:
+
+- **El tronco se bifurcaba a ras de la meseta** y el Árbol se desmoronaba hacia un
+  lado. Los dos primeros niveles ahora se abren un 42% de lo normal, así que hay
+  tronco antes de que empiece el ramaje.
+- **Las hojas salían de píxel y medio.** La escala del tamaño de punto va en
+  cientos, no en decenas: con el valor en 46 y la copa a 25 unidades, cada mota
+  medía 1,5 px en pantalla.
+
+Para iterar los parámetros del Árbol sin abrir el navegador, se compila el módulo
+con esbuild a CommonJS y se ejecuta en Node: es el código real, no una copia, y
+devuelve al instante el número de ramas, la altura y el radio de la copa. Ahorra
+muchísimas idas y vueltas al navegador para afinar un número.
+
+### Lo que queda pendiente del Árbol
+
+- Los rayos de luz todavía no atraviesan el ramaje como en la referencia. Ahora que
+  hay ramas finas, es cuestión de meter el emisor dentro de la copa y subir el peso
+  del efecto: va con la fase D, junto al resto de la atmósfera.
+- El balanceo por nivel en el shader (las ramas finas moviéndose más que el tronco).
+  Hoy la copa entera gira muy despacio, que es un sustituto barato.
 
 ---
 

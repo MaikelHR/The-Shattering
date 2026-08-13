@@ -57,7 +57,7 @@ const FRAG = /* glsl */ `
 /** Hacia dónde está el resplandor: la copa del Árbol. */
 const GLOW_TARGET = new Vector3(0, 10.5, 0);
 
-export default function Sky({ strength = 0.72 }: { strength?: number }) {
+export default function Sky({ strength = 0.46 }: { strength?: number }) {
   const dome = useRef<Mesh>(null);
   const dir = useRef(new Vector3());
 

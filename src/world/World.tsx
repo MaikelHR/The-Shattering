@@ -9,6 +9,7 @@ import BrokenRing from './BrokenRing';
 import Core from './Core';
 import CameraRig from './CameraRig';
 import Sky from './Sky';
+import { TREE } from './erdtree/branches';
 import Post from './Post';
 import { QUALITY, detectQuality, downgrade, isForced } from './quality';
 import type { Quality } from './quality';
@@ -77,8 +78,8 @@ export default function World({ reduced }: { reduced: boolean }) {
 
         {/* El emisor de los rayos: vive dentro de la copa, y son las ramas
             y las ruinas al pasar por delante las que recortan los haces. */}
-        <mesh ref={setSun} position={[0, 12.35, 0]}>
-          <sphereGeometry args={[0.85, 20, 20]} />
+        <mesh ref={setSun} position={[0, TREE.height * 0.74 + 0.7, 0]}>
+          <sphereGeometry args={[0.6, 16, 16]} />
           <meshBasicMaterial color="#f6cf96" toneMapped={false} fog={false} />
         </mesh>
 

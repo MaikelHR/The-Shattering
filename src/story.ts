@@ -41,8 +41,8 @@ export const CHAPTERS: Chapter[] = [
       'Durante una era el Anillo de Elden sostuvo el mundo, y el Árbol Áureo repartió su luz sin que nadie se molestara en preguntar de dónde salía.',
       'Los cartógrafos dibujaban las Tierras Intermedias con el Árbol en el centro. El centro no se discutía.',
     ],
-    camera: [0, 4.2, 25],
-    lookAt: [-6, 5.4, 0],
+    camera: [0, 5, 31],
+    lookAt: [-6.5, 7.6, 0],
     frame: -6,
   },
   {
@@ -53,8 +53,8 @@ export const CHAPTERS: Chapter[] = [
       'No hubo advertencia. La Reina Eterna quebró el Anillo con sus propias manos, y las Grandes Runas quedaron repartidas entre hijos que no entendían qué tenían.',
       'Lo que siguió fue una guerra. Los mapas la llamaron la Fractura, como si nombrarla alcanzara para explicarla.',
     ],
-    camera: [14, 14, 22],
-    lookAt: [3, 10.5, -6],
+    camera: [16, 16, 26],
+    lookAt: [3.5, 12, -6],
     frame: 3,
   },
   {
@@ -89,8 +89,8 @@ export const CHAPTERS: Chapter[] = [
       'Las Tierras Intermedias no fueron restauradas ni terminaron de caer. Se quedaron rotas, que es una manera de seguir esperando.',
       'El camino lo marca un hilo de luz dorada. Que lleve a alguna parte ya es cosa tuya.',
     ],
-    camera: [0, 13, 27],
-    lookAt: [-3.4, 4.5, 0],
+    camera: [0, 15, 34],
+    lookAt: [-3.8, 6.4, 0],
     frame: -3.4,
   },
 ];
