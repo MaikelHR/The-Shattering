@@ -45,12 +45,19 @@ export interface TerrainData {
   centerHeight: number;
 }
 
-export function buildTerrain(params: TerrainParams = DEFAULT_TERRAIN): TerrainData {
+/**
+ * La función de altura, aparte de la geometría.
+ *
+ * La necesitan la hierba y las rocas para sembrarse sobre el suelo: sin
+ * esto habría que buscar el vértice más cercano en un array de noventa mil,
+ * cuarenta mil veces.
+ */
+export function makeHeightFunction(params: TerrainParams = DEFAULT_TERRAIN) {
   const noise = makeNoise(params.seed);
   const edgeNoise = makeNoise(params.seed + 977);
-  const { size, segments, edgeRadius, edgeVariation, cliffDepth, relief } = params;
+  const { edgeRadius, edgeVariation, cliffDepth, relief } = params;
 
-  const height = (x: number, z: number): number => {
+  return (x: number, z: number): number => {
     const r = Math.hypot(x, z);
     const angle = Math.atan2(z, x);
 
@@ -77,6 +84,11 @@ export function buildTerrain(params: TerrainParams = DEFAULT_TERRAIN): TerrainDa
     const base = rolling + rock + detail;
     return base * (1 - flatten) + 1.1 * flatten - fall;
   };
+}
+
+export function buildTerrain(params: TerrainParams = DEFAULT_TERRAIN): TerrainData {
+  const height = makeHeightFunction(params);
+  const { size, segments } = params;
 
   const positions = new Float32Array((segments + 1) * (segments + 1) * 3);
   const uvs = new Float32Array((segments + 1) * (segments + 1) * 2);
@@ -120,3 +132,17 @@ export function buildTerrain(params: TerrainParams = DEFAULT_TERRAIN): TerrainDa
 
 /** El terreno de esta historia, calculado una vez al cargar el módulo. */
 export const TERRAIN = buildTerrain(DEFAULT_TERRAIN);
+
+/** Altura del suelo en cualquier punto, sin tocar la geometría. */
+export const groundHeight = makeHeightFunction(DEFAULT_TERRAIN);
+
+/**
+ * Pendiente del suelo: 1 en lo llano, 0 en una pared vertical.
+ * Sale de dos diferencias finitas, que para sembrar es de sobra.
+ */
+export function groundFlatness(x: number, z: number, step = 0.6): number {
+  const h = groundHeight(x, z);
+  const dx = (groundHeight(x + step, z) - h) / step;
+  const dz = (groundHeight(x, z + step) - h) / step;
+  return 1 / Math.sqrt(1 + dx * dx + dz * dz);
+}

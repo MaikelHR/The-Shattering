@@ -178,9 +178,23 @@ cerrada, se lee como maqueta.**
    El normal map se aplica **sin tangentes**: se perturba la normal del mundo
    directamente. Un terreno no tiene UV que respetar, así que el sistema de
    tangentes de three sobra.
-4. **Modelos escaneados y vegetación.** Rocas y ruinas de Poly Haven (CC0, son
-   escaneos reales) sembradas con instancing, y hierba instanciada con viento, que
-   es lo que llena el suelo en las referencias.
+4. 🔸 **Vegetación y piedras.** Hecho a medias: hay hierba y piedras, faltan las
+   ruinas.
+
+   **La hierba** son unas veinte mil briznas en una sola llamada de dibujo. El
+   viento va en el shader, doblando cada brizna con el cuadrado de su altura para
+   que la base no se despegue del suelo: mover veinte mil matrices desde JavaScript
+   en cada frame no lo aguanta ningún equipo, pero desplazar sus vértices en la GPU
+   es gratis. Se siembra por parches de ruido, con calvas, y descartando lo
+   empinado, porque en una pared no crece nada.
+
+   **Las piedras** son tres icosaedros abollados con ruido (una esfera facetada se
+   lee como dado; una abollada, como piedra), repetidos con rotación y tamaño
+   variables. Se agrupan en pedreras, también por ruido: repartidas parejo se ven
+   sembradas a mano.
+
+   Sigue a 180 fps y la página está lista en 244 ms, generación del terreno, la
+   siembra y el Árbol incluidas.
 
 ### El elefante: ¿mundo flotante o terreno continuo?
 

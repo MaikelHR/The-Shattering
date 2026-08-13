@@ -4,6 +4,8 @@ import { Environment, Lightformer, PerformanceMonitor, Sparkles, Stars } from '@
 import { NoToneMapping } from 'three';
 import type { Mesh } from 'three';
 import Terrain from './Terrain';
+import Grass from './Grass';
+import Rocks from './Rocks';
 import Erdtree from './Erdtree';
 import BrokenRing from './BrokenRing';
 import Core from './Core';
@@ -74,7 +76,9 @@ export default function World({ reduced }: { reduced: boolean }) {
 
         <Suspense fallback={null}>
           <Terrain />
+          <Rocks />
         </Suspense>
+        <Grass reduced={reduced} />
         <Erdtree reduced={reduced} shadowMap={q.shadowMap} />
         <BrokenRing reduced={reduced} />
         <Core reduced={reduced} />
