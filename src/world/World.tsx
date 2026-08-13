@@ -6,6 +6,7 @@ import type { Mesh } from 'three';
 import Terrain from './Terrain';
 import Grass from './Grass';
 import Rocks from './Rocks';
+import Ruins from './Ruins';
 import Erdtree from './Erdtree';
 import BrokenRing from './BrokenRing';
 import Core from './Core';
@@ -77,6 +78,7 @@ export default function World({ reduced }: { reduced: boolean }) {
         <Suspense fallback={null}>
           <Terrain />
           <Rocks density={q.particles} />
+          <Ruins density={q.particles} />
         </Suspense>
         <Grass reduced={reduced} density={q.particles} />
         <Erdtree reduced={reduced} shadowMap={q.shadowMap} />

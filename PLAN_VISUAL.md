@@ -178,8 +178,20 @@ cerrada, se lee como maqueta.**
    El normal map se aplica **sin tangentes**: se perturba la normal del mundo
    directamente. Un terreno no tiene UV que respetar, así que el sistema de
    tangentes de three sobra.
-4. 🔸 **Vegetación y piedras.** Hecho a medias: hay hierba y piedras, faltan las
-   ruinas.
+4. ✅ **Vegetación, piedras y ruinas.** Hecho.
+
+   **Las ruinas** son 49 piezas en cuatro llamadas de dibujo: columnas enteras,
+   partidas, tumbadas, sillares y un dintel. Es la única geometría del mundo a la
+   que se le permite ser recta —la hizo alguien, y esa es justo la lectura que
+   aporta—, así que la credibilidad viene de otro lado: del desgaste (los bordes
+   comidos con ruido, y las columnas partidas rematadas en filo dentado y no en
+   corte de sierra) y sobre todo de **la disposición**. Las columnas de un mismo
+   sitio guardan la fila y el espaciado, porque sostuvieron el mismo techo;
+   repartidas al azar por el campo se leerían como postes.
+
+   Los cinco emplazamientos van a mano y no al azar, porque tienen que caer lejos
+   de donde se para la cámara: a ocho unidades del ojo, una columna no se lee como
+   ruina sino como un obstáculo tapando el paisaje.
 
    **La hierba** son unas veinte mil briznas en una sola llamada de dibujo. El
    viento va en el shader, doblando cada brizna con el cuadrado de su altura para
