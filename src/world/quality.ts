@@ -20,14 +20,21 @@ export interface QualitySettings {
   godRaySamples: number;
   /** Desenfoque de profundidad. El más caro de todos. */
   depthOfField: boolean;
+  /** Oclusión ambiental: el peso de las cosas. */
+  ambientOcclusion: boolean;
+  aoQuality: 'performance' | 'low' | 'medium' | 'high' | 'ultra';
+  /** A media resolución cuesta la cuarta parte y casi no se nota. */
+  aoHalfRes: boolean;
+  /** Resolución del mapa de sombras. 0 las apaga. */
+  shadowMap: number;
   /** Partículas y estrellas. */
   particles: number;
 }
 
 export const QUALITY: Record<Quality, QualitySettings> = {
-  high: { dpr: [1, 2], multisampling: 4, godRays: true, godRaySamples: 60, depthOfField: true, particles: 1 },
-  medium: { dpr: [1, 1.5], multisampling: 2, godRays: true, godRaySamples: 28, depthOfField: false, particles: 0.6 },
-  low: { dpr: [1, 1], multisampling: 0, godRays: false, godRaySamples: 0, depthOfField: false, particles: 0.35 },
+  high: { dpr: [1, 2], multisampling: 0, godRays: true, godRaySamples: 60, depthOfField: true, ambientOcclusion: true, aoQuality: 'medium', aoHalfRes: false, shadowMap: 2048, particles: 1 },
+  medium: { dpr: [1, 1.5], multisampling: 0, godRays: true, godRaySamples: 28, depthOfField: false, ambientOcclusion: true, aoQuality: 'performance', aoHalfRes: true, shadowMap: 1024, particles: 0.6 },
+  low: { dpr: [1, 1], multisampling: 0, godRays: false, godRaySamples: 0, depthOfField: false, ambientOcclusion: false, aoQuality: 'performance', aoHalfRes: true, shadowMap: 0, particles: 0.35 },
 };
 
 /**

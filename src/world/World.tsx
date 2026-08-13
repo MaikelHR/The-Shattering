@@ -36,6 +36,7 @@ export default function World({ reduced }: { reduced: boolean }) {
   return (
     <div className="world" aria-hidden="true">
       <Canvas
+        shadows={q.shadowMap > 0}
         camera={{ position: [0, 4, 24], fov: 45, near: 0.1, far: 300 }}
         dpr={q.dpr}
         // Sin tone mapping en el renderer: lo aplica el composer al final de la
@@ -69,10 +70,10 @@ export default function World({ reduced }: { reduced: boolean }) {
         </Environment>
 
         <ambientLight intensity={0.09} />
-        <directionalLight position={[6, 16, 8]} intensity={0.55} color="#ffd9a0" />
+        <directionalLight position={[6, 16, 8]} intensity={0.45} color="#ffd9a0" />
 
         <Islands reduced={reduced} />
-        <Erdtree reduced={reduced} />
+        <Erdtree reduced={reduced} shadowMap={q.shadowMap} />
         <BrokenRing reduced={reduced} />
         <Core reduced={reduced} />
 

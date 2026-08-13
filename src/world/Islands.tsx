@@ -30,12 +30,12 @@ function Island({ def, isMother }: { def: IslandDef; isMother: boolean }) {
   return (
     <>
       {/* Meseta superior */}
-      <mesh>
+      <mesh castShadow receiveShadow>
         <cylinderGeometry args={[def.radius, def.radius * 0.92, def.height, def.seg, 1]} />
         <meshStandardMaterial color="#5a4c37" roughness={0.92} metalness={0.05} flatShading />
       </mesh>
       {/* Raíz de roca que cuelga */}
-      <mesh position={[0, -def.height * 1.6, 0]}>
+      <mesh position={[0, -def.height * 1.6, 0]} castShadow receiveShadow>
         <coneGeometry args={[def.radius * 0.88, def.height * 2.6, def.seg, 1]} />
         <meshStandardMaterial color="#33291b" roughness={1} metalness={0} flatShading />
       </mesh>

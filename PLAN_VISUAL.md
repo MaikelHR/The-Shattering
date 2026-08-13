@@ -146,8 +146,21 @@ cerrada, se lee como maqueta.**
 
 ### Las cuatro palancas, por orden de impacto
 
-1. **Sombras y oclusión ambiental.** Cero assets, y es lo que hace que las cosas
-   pesen. Sombras cascadas del sol direccional más N8AO en el composer.
+1. ✅ **Sombras y oclusión ambiental.** Hecho. La sombra sale del Árbol y no del
+   sol, que es de donde viene la luz que se ve: un foco desde la copa apuntando al
+   suelo cuesta **un** pase de sombra, mientras que la luz puntual costaría seis
+   (una por cara del cubo), y desde abajo el resultado es el mismo. Más N8AO en el
+   composer para la oclusión.
+
+   Dos cosas aprendidas: **N8AO no convive con el multisampling** (lee el buffer de
+   profundidad, y con MSAA ese buffer no es legible), así que el antialias pasa a
+   ser SMAA, que es un efecto y sí convive. Y **Chrome congela el
+   `requestAnimationFrame` cuando la ventana queda tapada** aunque
+   `document.visibilityState` siga diciendo "visible": da 0 fps y parece que la
+   escena se rompió. Para medir hay que abrirlo con
+   `--disable-backgrounding-occluded-windows`.
+
+   Sigue a 180 fps en la Radeon RX 7600 con todo activado.
 2. **Terreno generado, no primitivas.** Malla subdividida desplazada con ruido
    fractal, con las normales recalculadas: acantilados con silueta irregular.
 3. **Materiales PBR con proyección triplanar.** Una textura de roca (albedo +

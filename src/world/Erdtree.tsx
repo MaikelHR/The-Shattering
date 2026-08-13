@@ -38,7 +38,13 @@ import { TREE } from './erdtree/branches';
  * Con la Fractura, el Árbol se apaga y no se recupera: la misma luz
  * aparece abajo, en las raíces (ver Core.tsx).
  */
-export default function Erdtree({ reduced }: { reduced: boolean }) {
+export default function Erdtree({
+  reduced,
+  shadowMap,
+}: {
+  reduced: boolean;
+  shadowMap: number;
+}) {
   const branches = useRef<InstancedMesh>(null);
   const leaves = useRef<Points>(null);
   const light = useRef<PointLight>(null);
@@ -203,6 +209,8 @@ export default function Erdtree({ reduced }: { reduced: boolean }) {
         ref={branches}
         args={[undefined, undefined, tree.matrices.length]}
         material={bark}
+        castShadow
+        receiveShadow
         frustumCulled={false}
       >
         {/* Un cilindro de una unidad, centrado: cada instancia lo estira y lo
@@ -218,6 +226,27 @@ export default function Erdtree({ reduced }: { reduced: boolean }) {
         color="#ffcf87"
         distance={44}
         decay={1.5}
+      />
+
+      {/* La sombra sale del Árbol, no del sol: es de donde viene la luz que
+          se ve. Un foco apuntando al suelo cuesta un solo pase de sombra,
+          mientras que la luz puntual de arriba costaría seis (una por cara
+          del cubo), y desde abajo el resultado es el mismo: el ramaje
+          dibujado sobre la roca. */}
+      <spotLight
+        position={[0, tree.height * 0.78, 0]}
+        angle={1.05}
+        penumbra={0.85}
+        intensity={reduced ? 12 : 18}
+        distance={70}
+        decay={1.2}
+        color="#ffd9a0"
+        castShadow={shadowMap > 0}
+        shadow-mapSize={[shadowMap || 1024, shadowMap || 1024]}
+        shadow-bias={-0.0006}
+        shadow-normalBias={0.035}
+        shadow-camera-near={1}
+        shadow-camera-far={60}
       />
     </group>
   );

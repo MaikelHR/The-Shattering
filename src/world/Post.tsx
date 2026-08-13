@@ -6,7 +6,9 @@ import {
   EffectComposer,
   GodRays,
   HueSaturation,
+  N8AO,
   Noise,
+  SMAA,
   ToneMapping,
   Vignette,
 } from '@react-three/postprocessing';
@@ -41,6 +43,22 @@ export default function Post({ sun, quality }: { sun: Mesh | null; quality: Qual
 
   return (
     <EffectComposer multisampling={q.multisampling} enableNormalPass={false}>
+      {/* Oclusión ambiental. Va primero porque no es un efecto sino un pase
+          completo: oscurece los rincones donde dos superficies se juntan, que
+          es lo que hace que las cosas parezcan apoyadas y no pegadas encima. */}
+      {q.ambientOcclusion ? (
+        <N8AO
+          aoRadius={2.2}
+          distanceFalloff={0.8}
+          intensity={2.4}
+          quality={q.aoQuality}
+          halfRes={q.aoHalfRes}
+          color="#120d07"
+        />
+      ) : (
+        <></>
+      )}
+
       {q.godRays && sun ? (
         <GodRays
           sun={sun}
@@ -86,6 +104,7 @@ export default function Post({ sun, quality }: { sun: Mesh | null; quality: Qual
           se va a blanco en cuanto el bloom lo toca. */}
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
 
+      <SMAA />
       <Vignette darkness={0.42} offset={0.36} />
       <Noise premultiply opacity={0.032} blendFunction={BlendFunction.SOFT_LIGHT} />
     </EffectComposer>
