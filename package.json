@@ -1,9 +1,9 @@
 {
-  "name": "aureth",
+  "name": "the-shattering",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Tierras Intermedias: la caida de la Orden Aurea contada con el scroll. GSAP ScrollTrigger conduciendo una escena 3D de React Three Fiber.",
+  "description": "The Shattering: la caida de la Orden Aurea contada con el scroll. GSAP ScrollTrigger conduciendo una escena 3D de React Three Fiber.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

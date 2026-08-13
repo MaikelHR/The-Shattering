@@ -118,6 +118,68 @@ Va en la fase C, en paralelo a los paisajes.
 
 ---
 
+## 2.2 Corrección de rumbo: menos geometría, más materia
+
+El objetivo es que se vea **realista**, no estilizado. Eso cambia prioridades, y
+conviene ser preciso sobre qué es exactamente lo que hoy delata que esto es una
+maqueta:
+
+**Las mesetas.** Cilindros de seis y ocho lados, con la tapa perfectamente plana y
+un cono perfecto colgando. No hay nada en la naturaleza con esa silueta. Es, con
+diferencia, lo que más rompe la ilusión.
+
+**La ausencia de sombras.** El canvas nunca tuvo sombras activadas. Sin sombra
+proyectada, nada pesa: los objetos parecen calcomanías flotando delante del fondo,
+por buena que sea su forma. Es la mitad del problema y no cuesta un asset.
+
+**La ausencia de oclusión ambiental.** Los rincones donde dos superficies se
+encuentran deberían oscurecerse. Sin eso, todo se ve "despegado". El paquete de
+postprocesado que ya está instalado trae N8AO, que lo resuelve en tiempo real.
+
+**El color plano.** Cada superficie es un color liso. Una piedra real tiene
+variación a todas las escalas: manchas grandes, grano fino, bordes desgastados.
+
+En cambio, lo que **no** se ve geométrico es el Árbol, justamente porque su forma
+sale de un proceso (ramificarse) y no de una primitiva. Esa es la pista: **cuando
+la forma la genera un proceso, se lee como natural; cuando la genera una fórmula
+cerrada, se lee como maqueta.**
+
+### Las cuatro palancas, por orden de impacto
+
+1. **Sombras y oclusión ambiental.** Cero assets, y es lo que hace que las cosas
+   pesen. Sombras cascadas del sol direccional más N8AO en el composer.
+2. **Terreno generado, no primitivas.** Malla subdividida desplazada con ruido
+   fractal, con las normales recalculadas: acantilados con silueta irregular.
+3. **Materiales PBR con proyección triplanar.** Una textura de roca (albedo +
+   normal + rugosidad) proyectada por los tres ejes, que es la única forma de que
+   no se estire en las paredes verticales. Sube a prioridad alta.
+4. **Modelos escaneados y vegetación.** Rocas y ruinas de Poly Haven (CC0, son
+   escaneos reales) sembradas con instancing, y hierba instanciada con viento, que
+   es lo que llena el suelo en las referencias.
+
+### El elefante: ¿mundo flotante o terreno continuo?
+
+Las mesetas colgando en el vacío son herencia de *Aureth*, el proyecto original. En
+las Tierras Intermedias el mundo **no flota**: es continuo, con acantilados,
+llanuras y ruinas, exactamente como en las tres referencias.
+
+Mientras las islas floten, ninguna cantidad de textura va a hacer que la escena se
+vea real, porque lo que se ve imposible es la composición, no el material.
+
+La Fractura no necesita que el suelo se rompa: lo que se rompe es el Anillo, y eso
+ya ocurre en el cielo. Una grieta abriéndose en el terreno cuenta lo mismo y es más
+espectacular que unas mesetas apartándose.
+
+### Techo honesto
+
+Las referencias son un motor AAA con iluminación horneada. En el navegador se puede
+llegar muy lejos, pero no ahí. Lo que sí está a nuestro alcance: siluetas creíbles,
+peso (sombras y oclusión), materia (texturas y variación), aire (niebla en capas) y
+una capa fotográfica encima (grano, foco, aberración). Con esas cinco, la escena
+deja de leerse como maqueta aunque no sea fotorrealista.
+
+---
+
 ## Fase A — Postprocesado y color ✅ hecho
 
 **Lo que cambia:** todo. Es la fase de mayor impacto por hora invertida, y no
