@@ -1,0 +1,11 @@
+node_modules
+dist
+*.local
+.DS_Store
+.vite
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Herramientas de prueba
+.playwright-mcp

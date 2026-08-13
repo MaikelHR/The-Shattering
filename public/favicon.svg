@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#100d08" />
+  <!-- la copa del Árbol -->
+  <circle cx="16" cy="12" r="7.5" fill="#e8c37a" />
+  <circle cx="10.5" cy="14.5" r="4" fill="#e8c37a" />
+  <circle cx="21.5" cy="14.5" r="4.2" fill="#e8c37a" />
+  <!-- el tronco, bajando hasta las raíces -->
+  <path d="M14.6 15h2.8l1.1 13h-5z" fill="#5c4a2c" />
+</svg>

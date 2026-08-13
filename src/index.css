@@ -1,0 +1,422 @@
+/* ============================================================
+   TIERRAS INTERMEDIAS — estilos
+   Paleta del Árbol: oro y ámbar sobre bruma parda. Nada de fríos,
+   y el carmesí solo aparece donde la historia se rompe.
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+  --dusk: #100d08;
+  --deep: #1c1710;
+  --gold: #e8c37a;
+  --ember: #d98f3c;
+  --rot: #9c4030;
+  --fog: #d9cdb8;
+  --mute: #9c8e76;
+  --line: rgba(232, 195, 122, 0.22);
+
+  --display: 'Fraunces', Georgia, serif;
+  --body: 'Karla', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Margen lateral del contenido. El izquierdo es más ancho donde el riel
+     está a la vista: con el margen parejo, el nombre del capítulo activo
+     se metía debajo del bloque de texto. */
+  --gutter: clamp(24px, 7vw, 120px);
+  --gutter-left: var(--gutter);
+}
+
+@media (min-width: 721px) {
+  :root {
+    --gutter-left: max(var(--gutter), 152px);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto; /* el scroll suave lo maneja GSAP, no el navegador */
+}
+
+body {
+  margin: 0;
+  background: var(--dusk);
+  color: var(--fog);
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ---- El mundo 3D: fijo detrás de todo ---- */
+.world {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  /* El cielo. El canvas va con alpha, así que este degradado es el fondo
+     de la escena: el resplandor del Árbol arriba, apagándose hacia abajo.
+     El color de la niebla en World.tsx es el del tramo medio, para que lo
+     lejano se funda con el cielo sin dejar borde. */
+  background: radial-gradient(125% 95% at 50% 4%, #4a3717 0%, #2a1f0e 34%, #17110a 66%, #0c0906 100%);
+}
+
+.world canvas {
+  display: block;
+}
+
+/* ---- Contenido por encima ---- */
+.page {
+  position: relative;
+  z-index: 1;
+  /* El hueco entre bloques deja pasar el mouse al canvas (de ahí sale la
+     deriva de la cámara); el texto sí recibe eventos para poder leerlo
+     y copiarlo. */
+  pointer-events: none;
+}
+
+.hero,
+.chapter__inner,
+.colophon {
+  pointer-events: auto;
+}
+
+/* ---- Barra de progreso ---- */
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 3;
+  background: rgba(232, 195, 122, 0.12);
+  pointer-events: none;
+}
+
+.progress__bar {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--ember) 62%, var(--rot));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* ---- Hero ---- */
+.hero {
+  min-height: 100vh;
+  /* svh y no vh a secas: en móvil la barra de URL se traga parte del
+     viewport. svh tampoco cambia al scrollear, así que ScrollTrigger no
+     tiene que recalcular medio layout mientras la barra aparece y se va. */
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 var(--gutter) 0 var(--gutter-left);
+  max-width: 900px;
+}
+
+.hero__eyebrow {
+  margin: 0 0 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+.hero__title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-variation-settings: 'opsz' 144;
+  font-size: clamp(44px, 11vw, 132px);
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  color: #f6ecd8;
+  text-shadow: 0 8px 70px rgba(232, 195, 122, 0.22);
+}
+
+.hero__sub {
+  margin: 26px 0 0;
+  max-width: 22ch;
+  font-size: clamp(17px, 2.2vw, 22px);
+  line-height: 1.5;
+  color: var(--fog);
+}
+
+.hero__scroll {
+  margin: 54px 0 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* ---- Capítulos ---- */
+.chapter {
+  min-height: 105vh;
+  min-height: 105svh;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--gutter) 0 var(--gutter-left);
+}
+
+/* Alternamos el lado para que la vista del mundo respire. El lado lo
+   decide el componente con data-align: antes era :nth-child(even), que
+   contaba también el <header> del hero y dejaba la serie corrida. */
+.chapter[data-align='right'] .chapter__inner {
+  margin-left: auto;
+  text-align: right;
+}
+
+.chapter__inner {
+  max-width: 46ch;
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgba(16, 13, 8, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  /* El parallax mueve este bloque en cada frame y el blur de fondo es
+     caro de repintar: avisamos al compositor para que le dé su capa. */
+  will-change: transform;
+}
+
+.chapter__label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+.chapter[data-align='right'] .chapter__label {
+  flex-direction: row-reverse;
+}
+
+.chapter__rune {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 11px;
+  color: var(--gold);
+}
+
+.chapter__title {
+  margin: 0 0 20px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-variation-settings: 'opsz' 96;
+  font-size: clamp(30px, 4.6vw, 52px);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: #f6ecd8;
+}
+
+.chapter__body p {
+  margin: 0 0 14px;
+  font-size: clamp(15px, 1.7vw, 17px);
+  line-height: 1.72;
+  color: var(--fog);
+}
+
+.chapter__body p:last-child {
+  margin-bottom: 0;
+  color: var(--mute);
+}
+
+/* ---- Riel de capítulos (elemento de firma) ---- */
+.rail {
+  position: fixed;
+  left: clamp(12px, 2.4vw, 30px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  pointer-events: none; /* el hueco del nav no le roba el mouse al canvas */
+}
+
+.rail__line {
+  position: absolute;
+  left: 12px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--line);
+}
+
+.rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.rail__item {
+  opacity: 0.4;
+  transition: opacity 0.45s ease;
+}
+
+.rail__item.is-active,
+.rail__item:hover,
+.rail__item:focus-within {
+  opacity: 1;
+}
+
+.rail__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.rail__rune {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--dusk);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--mute);
+  transition: color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease,
+    transform 0.45s ease;
+}
+
+.rail__link:hover .rail__rune {
+  transform: scale(1.12);
+  color: var(--fog);
+}
+
+.rail__item.is-active .rail__rune {
+  color: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 18px rgba(232, 195, 122, 0.28);
+}
+
+.rail__label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--mute);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.rail__item.is-active .rail__label,
+.rail__link:hover .rail__label,
+.rail__link:focus-visible .rail__label {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--fog);
+}
+
+/* ---- Cierre ---- */
+.colophon {
+  min-height: 62vh;
+  min-height: 62svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px 80px;
+  text-align: center;
+}
+
+.colophon__note {
+  margin: 0;
+  max-width: 34ch;
+  font-family: var(--display);
+  font-size: clamp(19px, 2.6vw, 26px);
+  line-height: 1.4;
+  color: #f6ecd8;
+}
+
+.colophon__tech {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.colophon__legal {
+  margin: 28px 0 0;
+  max-width: 52ch;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--mute);
+  opacity: 0.75;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 720px) {
+  .rail {
+    display: none;
+  }
+
+  /* En vertical el bloque de texto se come el ancho entero, así que el
+     mundo se queda sin sitio si además va centrado. El texto baja y la
+     escena se queda con la mitad de arriba (CameraRig sube el encuadre
+     en la misma proporción). */
+  .chapter {
+    align-items: flex-end;
+    padding-bottom: 9svh;
+  }
+
+  .chapter[data-align='right'] .chapter__inner {
+    margin-left: 0;
+    text-align: left;
+  }
+
+  .chapter[data-align='right'] .chapter__label {
+    flex-direction: row;
+  }
+
+  .chapter__inner {
+    max-width: 100%;
+  }
+}
+
+/* ---- Accesibilidad ---- */
+@media (prefers-reduced-motion: reduce) {
+  .rail__item,
+  .rail__rune,
+  .rail__label {
+    transition: none;
+  }
+
+  .rail__link:hover .rail__rune {
+    transform: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}

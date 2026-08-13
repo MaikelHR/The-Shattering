@@ -1,0 +1,139 @@
+# Tierras Intermedias — crónica de un orden roto
+
+Un **scrollytelling** de fantasía: la historia se cuenta con el scroll mientras un
+mundo 3D generado en tiempo real se recorre detrás del texto. No hay video ni
+imágenes pre-renderizadas — la cámara se mueve de verdad por la escena.
+
+Cuenta la caída de la Orden Áurea de Elden Ring en cinco capítulos: el Árbol
+entero, la Fractura del Anillo, lo que quedó de los Semidioses, las raíces que
+siguen encendidas bajo la capital, y el Sinluz que llega después.
+
+**Stack:** React 19 · TypeScript · Vite · Three.js (React Three Fiber) · GSAP ScrollTrigger + SplitText
+
+Cero backend, cero API keys, cero costo. Todo estático.
+
+> Proyecto de fan, sin fines comerciales. Elden Ring es de FromSoftware y Bandai
+> Namco. No usa ni un asset del juego: el Árbol, el Anillo y las mesetas son
+> geometría dibujada con primitivas, y por eso la página no descarga una sola
+> imagen. (La carpeta se sigue llamando `aureth`, de la primera versión.)
+
+## Correr
+
+```bash
+npm install
+npm run dev
+```
+
+Abrí la URL que imprime Vite (normalmente `http://localhost:5173`).
+
+## Build y deploy
+
+```bash
+npm run build      # revisa tipos y empaqueta a /dist
+npm run preview    # sirve el build de producción
+```
+
+`dist/` es estático: subilo gratis a Vercel, Netlify o GitHub Pages (para Pages,
+descomentá `base` en `vite.config.ts`).
+
+## La idea clave: cómo hablan GSAP y Three.js
+
+Este es el problema real del proyecto, y vale entenderlo bien.
+
+GSAP controla el scroll. El mundo 3D tiene que reaccionar. ¿Cómo se comunican?
+
+**Lo que NO hay que hacer:** que ScrollTrigger llame a `setState` en cada
+actualización. El scroll dispara decenas de veces por segundo y cada cambio de
+estado re-renderizaría el árbol de React entero. Se traba.
+
+**Lo que hace este proyecto:** un objeto mutable compartido (`src/scrollState.ts`).
+
+```
+scroll del usuario
+      ↓
+ScrollTrigger (App.tsx)  ── escribe ──▶  scrollState { position, progress, ... }
+                                                ↓ lee
+                                         useFrame (mundo 3D, 60fps)
+                                                ↓
+                                    cámara, Árbol, Anillo, mesetas
+```
+
+React nunca se entera de esos cambios, así que no re-renderiza nada. El estado de
+React se usa solo para lo que cambia poco: el capítulo activo del riel lateral.
+
+### El dato que importa no es el progreso, es el capítulo
+
+Lo intuitivo sería mapear el progreso total (0 a 1) a los cinco encuadres. No
+funciona: el hero y el cierre también ocupan scroll, así que la cámara siempre va
+corrida y nunca llega al encuadre del capítulo que estás leyendo.
+
+Por eso `scrollState.position` no sale de una regla de tres sino de la posición
+real de cada sección: App mide a qué altura queda centrada cada una y
+`writeScroll()` interpola entre esas anclas. Cuando el capítulo IV está en el
+medio de la pantalla, la cámara está exactamente en el encuadre del IV.
+
+Y como todo el mundo 3D lee ese mismo número, los umbrales se leen como lo que
+son: el Árbol se apaga *entre el capítulo I y el II*, el núcleo se enciende
+*llegando al IV*.
+
+## Estructura
+
+```
+src/
+├── App.tsx              # ScrollTrigger maestro + layout de la página
+├── story.ts             # TODO el contenido: texto y recorrido de cámara
+├── scrollState.ts       # el puente GSAP ⇄ 3D + utilidades (lerp, damp)
+├── index.css            # paleta, tipografía, capas
+├── components/
+│   ├── Chapter.tsx       # sección con revelados de SplitText
+│   └── ChapterRail.tsx   # riel de capítulos (elemento de firma)
+└── world/
+    ├── World.tsx         # canvas fijo, luces, niebla, estrellas
+    ├── Erdtree.tsx       # el Árbol Áureo: foco, luz y halo
+    ├── BrokenRing.tsx    # el Anillo, que la Fractura parte en tres
+    ├── Islands.tsx       # las mesetas que se apartan del centro
+    ├── Core.tsx          # las raíces encendidas bajo la capital
+    └── CameraRig.tsx     # la cámara interpolada por el scroll
+```
+
+**Para reescribir la historia o cambiar el recorrido, editá solo `src/story.ts`.**
+Cada capítulo define su texto, dónde está la cámara, hacia dónde mira y cuánto de
+esa mirada es composición (`frame`).
+
+## Detalles que vale la pena mirar en el código
+
+- `useGSAP()` en vez de `useEffect`: limpia las animaciones al desmontar. Sin eso,
+  ScrollTrigger acumula instancias muertas en cada recarga en caliente.
+- El `scope` de `useGSAP` limita los selectores a cada componente. **Pero el scope
+  no alcanza a SplitText**, que resuelve los strings con su propio
+  `querySelectorAll` sobre el documento entero: con un selector, cada capítulo
+  terminaba partiendo los cinco títulos de la página. Por eso `Chapter.tsx` le pasa
+  el elemento por ref.
+- `damp()` en vez de `lerp()` crudo: hace el suavizado independiente del framerate.
+  La única vez que la cámara no suaviza es el primer frame, donde se planta directo
+  en su sitio para que una recarga a mitad de historia no empiece con un viaje.
+- El riel escucha `onEnter`/`onEnterBack` y no `onToggle`: cuando alguien arrastra
+  la barra de scroll o pulsa Fin, ScrollTrigger salta por encima de secciones que
+  nunca llegan a estar activas.
+- El canvas escucha los eventos de puntero en `document.body` (`eventSource`), no en
+  sí mismo. El texto está encima y lo tapa; sin eso, la deriva de la cámara se
+  congelaba apenas el mouse pasaba sobre un capítulo.
+- **El encuadre se adapta a la forma de la ventana.** El fov vertical es fijo, así
+  que una pantalla vertical ve muchísimo menos a lo ancho: el corrimiento que en un
+  monitor deja al sujeto en el lado libre, en un teléfono lo saca de cuadro.
+  CameraRig lo devuelve al centro, sube la mirada y toma distancia, en proporción a
+  lo angosta que sea la ventana.
+- El resplandor del Árbol es un sprite con un degradado radial pintado en un canvas
+  al vuelo. Una esfera translúcida deja ver su contorno, que es justo lo que un halo
+  no puede tener, y un pipeline de postprocesado es mucho traer para un solo bloom.
+- El cielo es un degradado CSS y el canvas va con `alpha`. La niebla de la escena
+  usa el tono del tramo medio para que lo lejano se funda sin dejar borde.
+- `prefers-reduced-motion` se respeta con una regla simple: **el mundo solo se mueve
+  cuando el usuario scrollea**. Se apaga el movimiento autónomo (el Árbol, el
+  Anillo, las mesetas, el latido de las raíces, el titileo de las estrellas, la
+  inercia de la cámara, el parallax y los revelados de texto) y se deja lo que
+  responde al scroll.
+
+## Qué sigue
+
+Ver **[PLAN_DE_DESARROLLO.md](./PLAN_DE_DESARROLLO.md)**.
