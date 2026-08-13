@@ -38,7 +38,15 @@ import type { Quality } from './quality';
  * núcleo, los aros de las mesetas), así que la roca no brilla y nos
  * ahorramos un pase de render entero.
  */
-export default function Post({ sun, quality }: { sun: Mesh | null; quality: Quality }) {
+export default function Post({
+  sun,
+  quality,
+  reduced,
+}: {
+  sun: Mesh | null;
+  quality: Quality;
+  reduced: boolean;
+}) {
   const q = QUALITY[quality];
 
   return (
@@ -106,7 +114,14 @@ export default function Post({ sun, quality }: { sun: Mesh | null; quality: Qual
 
       <SMAA />
       <Vignette darkness={0.42} offset={0.36} />
-      <Noise premultiply opacity={0.032} blendFunction={BlendFunction.SOFT_LIGHT} />
+      {/* El grano se regenera en cada frame, así que es movimiento: con la
+          preferencia de movimiento reducido se apaga, aunque cueste algo de
+          la textura fotográfica. */}
+      {reduced ? (
+        <></>
+      ) : (
+        <Noise premultiply opacity={0.032} blendFunction={BlendFunction.SOFT_LIGHT} />
+      )}
     </EffectComposer>
   );
 }

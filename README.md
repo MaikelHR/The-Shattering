@@ -13,9 +13,10 @@ siguen encendidas bajo la capital, y el Sinluz que llega después.
 Cero backend, cero API keys, cero costo. Todo estático.
 
 > Proyecto de fan, sin fines comerciales. Elden Ring es de FromSoftware y Bandai
-> Namco. No usa ni un asset del juego: el Árbol, el Anillo y las mesetas son
-> geometría dibujada con primitivas, y por eso la página no descarga una sola
-> imagen. (La carpeta se sigue llamando `aureth`, de la primera versión.)
+> Namco. No usa ni un asset del juego: el Árbol, el Anillo, el terreno y todo lo
+> que crece en él se generan con código. Las únicas descargas son dos texturas de
+> roca de Poly Haven, de dominio público. (La carpeta se sigue llamando `aureth`,
+> de la primera versión.)
 
 ## Correr
 
@@ -55,7 +56,7 @@ ScrollTrigger (App.tsx)  ── escribe ──▶  scrollState { position, progr
                                                 ↓ lee
                                          useFrame (mundo 3D, 60fps)
                                                 ↓
-                                    cámara, Árbol, Anillo, mesetas
+                                    cámara, Árbol, Anillo, raíces
 ```
 
 React nunca se entera de esos cambios, así que no re-renderiza nada. El estado de
@@ -88,12 +89,21 @@ src/
 │   ├── Chapter.tsx       # sección con revelados de SplitText
 │   └── ChapterRail.tsx   # riel de capítulos (elemento de firma)
 └── world/
-    ├── World.tsx         # canvas fijo, luces, niebla, estrellas
-    ├── Erdtree.tsx       # el Árbol Áureo: foco, luz y halo
+    ├── World.tsx         # canvas fijo, luces, niebla, calidad
+    ├── Sky.tsx           # el domo de cielo, con el halo del Árbol
+    ├── Post.tsx          # la cadena de postprocesado
+    ├── quality.ts        # los tres niveles y el ajuste automático
+    ├── Terrain.tsx       # el suelo, con roca y hierba triplanar
+    ├── Grass.tsx         # el pasto instanciado, con viento en el shader
+    ├── Rocks.tsx         # las pedreras
+    ├── Erdtree.tsx       # el Árbol Áureo: ramas, hojas, luz y sombra
     ├── BrokenRing.tsx    # el Anillo, que la Fractura parte en tres
-    ├── Islands.tsx       # las mesetas que se apartan del centro
-    ├── Core.tsx          # las raíces encendidas bajo la capital
-    └── CameraRig.tsx     # la cámara interpolada por el scroll
+    ├── Core.tsx          # la luz encendida en la pared del acantilado
+    ├── CameraRig.tsx     # la cámara interpolada por el scroll
+    ├── erdtree/branches.ts    # el Árbol, generado por recursión
+    └── terrain/
+        ├── noise.ts           # ruido de gradiente y sus octavas
+        └── heightfield.ts     # el relieve y la consulta de altura
 ```
 
 **Para reescribir la historia o cambiar el recorrido, editá solo `src/story.ts`.**
@@ -123,16 +133,25 @@ esa mirada es composición (`frame`).
   monitor deja al sujeto en el lado libre, en un teléfono lo saca de cuadro.
   CameraRig lo devuelve al centro, sube la mirada y toma distancia, en proporción a
   lo angosta que sea la ventana.
-- El resplandor del Árbol es un sprite con un degradado radial pintado en un canvas
-  al vuelo. Una esfera translúcida deja ver su contorno, que es justo lo que un halo
-  no puede tener, y un pipeline de postprocesado es mucho traer para un solo bloom.
-- El cielo es un degradado CSS y el canvas va con `alpha`. La niebla de la escena
-  usa el tono del tramo medio para que lo lejano se funda sin dejar borde.
+- **El tone mapping va al final de la cadena de efectos, no en el renderer.** Con
+  `EffectComposer` la escena se renderiza en HDR y los valores por encima de 1
+  sobreviven hasta el volcado final: sin ese paso no se comprimen, se recortan, y
+  el cielo entero se va a blanco en cuanto el bloom lo toca.
+- **La sombra sale del Árbol, no del sol**, que es de donde viene la luz que se ve.
+  Un foco desde la copa cuesta un pase de sombra; la luz puntual costaría seis, una
+  por cara del cubo.
+- **Las cámaras viven dentro del terreno.** En cuanto una se sale del borde, se ve
+  el límite del mundo y la meseta se lee como una isla de juguete. La única que
+  está fuera es la del capítulo IV, y es a propósito: mira la pared del acantilado
+  desde el vacío.
 - `prefers-reduced-motion` se respeta con una regla simple: **el mundo solo se mueve
   cuando el usuario scrollea**. Se apaga el movimiento autónomo (el Árbol, el
-  Anillo, las mesetas, el latido de las raíces, el titileo de las estrellas, la
-  inercia de la cámara, el parallax y los revelados de texto) y se deja lo que
-  responde al scroll.
+  Anillo, el viento en la hierba, el latido de las raíces, el titileo de las
+  estrellas, el grano de película, la inercia de la cámara, el parallax y los
+  revelados de texto) y se deja lo que responde al scroll. Comprobado comparando
+  dos capturas separadas en el tiempo: salen idénticas byte a byte, salvo por el
+  ruido del denoiser de la oclusión ambiental, que cambia de un frame a otro por
+  debajo del umbral de lo perceptible.
 
 ## Qué sigue
 

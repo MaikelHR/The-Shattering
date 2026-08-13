@@ -59,7 +59,7 @@ export default function World({ reduced }: { reduced: boolean }) {
           />
         )}
 
-        <fog attach="fog" args={[HAZE, 20, 96]} />
+        <fog attach="fog" args={[HAZE, 14, 66]} />
         <Sky />
 
         <Environment resolution={256} frames={1}>
@@ -76,9 +76,9 @@ export default function World({ reduced }: { reduced: boolean }) {
 
         <Suspense fallback={null}>
           <Terrain />
-          <Rocks />
+          <Rocks density={q.particles} />
         </Suspense>
-        <Grass reduced={reduced} />
+        <Grass reduced={reduced} density={q.particles} />
         <Erdtree reduced={reduced} shadowMap={q.shadowMap} />
         <BrokenRing reduced={reduced} />
         <Core reduced={reduced} />
@@ -110,7 +110,7 @@ export default function World({ reduced }: { reduced: boolean }) {
         />
 
         <CameraRig reduced={reduced} />
-        <Post sun={sun} quality={quality} />
+        <Post sun={sun} quality={quality} reduced={reduced} />
       </Canvas>
     </div>
   );

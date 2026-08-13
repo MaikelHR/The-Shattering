@@ -114,12 +114,19 @@ function RockVariant({
   geometry,
   material,
   matrices,
+  density,
 }: {
   geometry: BufferGeometry;
   material: MeshStandardMaterial;
   matrices: Matrix4[];
+  density: number;
 }) {
   const mesh = useRef<InstancedMesh>(null);
+
+  useEffect(() => {
+    const instanced = mesh.current;
+    if (instanced) instanced.count = Math.max(1, Math.round(matrices.length * density));
+  }, [matrices, density]);
 
   useLayoutEffect(() => {
     const instanced = mesh.current;
@@ -141,7 +148,7 @@ function RockVariant({
   );
 }
 
-export default function Rocks() {
+export default function Rocks({ density }: { density: number }) {
   const [rockMap, rockNormal] = useTexture([
     '/textures/dark_rock_diff.webp',
     '/textures/dark_rock_nor.webp',
@@ -183,6 +190,7 @@ export default function Rocks() {
           geometry={geometry}
           material={material}
           matrices={scatter.matrices[i]}
+          density={density}
         />
       ))}
     </group>

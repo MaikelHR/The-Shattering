@@ -127,7 +127,7 @@ function sowGrass(): Blades {
   };
 }
 
-export default function Grass({ reduced }: { reduced: boolean }) {
+export default function Grass({ reduced, density }: { reduced: boolean; density: number }) {
   const mesh = useRef<InstancedMesh>(null);
   const blades = useMemo(sowGrass, []);
   const geometry = useMemo(bladeGeometry, []);
@@ -143,6 +143,9 @@ export default function Grass({ reduced }: { reduced: boolean }) {
     mat.onBeforeCompile = (shader) => {
       shader.uniforms.uTime = { value: 0 };
       shader.uniforms.uBase = { value: new Color('#4a4526') };
+      // Con menos briznas, cada una más ancha: así el campo sigue tapando el
+      // suelo en un equipo lento, en vez de quedar en matas sueltas.
+      shader.uniforms.uWidth = { value: 1 };
       mat.userData.shader = shader;
 
       shader.vertexShader = shader.vertexShader
@@ -152,6 +155,7 @@ export default function Grass({ reduced }: { reduced: boolean }) {
            attribute float aPhase;
            attribute float aTint;
            uniform float uTime;
+           uniform float uWidth;
            varying float vHeight;
            varying float vTint;`,
         )
@@ -160,6 +164,7 @@ export default function Grass({ reduced }: { reduced: boolean }) {
           `#include <begin_vertex>
            vHeight = uv.y;
            vTint = aTint;
+           transformed.x *= uWidth;
            // El viento dobla la brizna, no la inclina: el desplazamiento
            // crece con el cuadrado de la altura, así que la base no se mueve.
            float bend = vHeight * vHeight;
@@ -195,6 +200,14 @@ export default function Grass({ reduced }: { reduced: boolean }) {
     };
   }, [material, geometry]);
 
+  // Cuántas briznas se dibujan de las que hay sembradas. Como el orden de
+  // siembra es aleatorio, quedarse con las primeras es quedarse con una
+  // muestra repartida por todo el campo.
+  useEffect(() => {
+    const instanced = mesh.current;
+    if (instanced) instanced.count = Math.round(blades.matrices.length * density);
+  }, [blades, density]);
+
   useLayoutEffect(() => {
     const instanced = mesh.current;
     if (!instanced) return;
@@ -208,7 +221,11 @@ export default function Grass({ reduced }: { reduced: boolean }) {
 
   useFrame((state) => {
     const shader = material.userData.shader;
-    if (shader && !reduced) shader.uniforms.uTime.value = state.clock.elapsedTime;
+    if (!shader) return;
+    // El shader se compila en el primer render, así que el ancho se fija acá
+    // y no en un efecto: cuando el efecto corre, el shader todavía no existe.
+    shader.uniforms.uWidth.value = Math.min(1.85, 1 / Math.sqrt(density));
+    if (!reduced) shader.uniforms.uTime.value = state.clock.elapsedTime;
   });
 
   return (

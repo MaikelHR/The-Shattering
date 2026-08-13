@@ -196,7 +196,7 @@ export default function Erdtree({
 
     foliage.uniforms.uOpacity.value = blaze.current;
     foliage.uniforms.uTime.value = reduced ? 0 : state.clock.elapsedTime;
-    l.intensity = 5 + blaze.current * 42;
+    l.intensity = 6 + blaze.current * 90;
 
     if (!reduced && leaves.current) {
       // La copa entera respira, muy lento. Un árbol no se queda quieto.
@@ -225,8 +225,8 @@ export default function Erdtree({
         ref={light}
         position={[0, tree.height * 0.82, 0]}
         color="#ffcf87"
-        distance={44}
-        decay={1.5}
+        distance={52}
+        decay={1.9}
       />
 
       {/* La sombra sale del Árbol, no del sol: es de donde viene la luz que
@@ -238,9 +238,9 @@ export default function Erdtree({
         position={[0, tree.height * 0.78, 0]}
         angle={1.05}
         penumbra={0.45}
-        intensity={reduced ? 12 : 18}
+        intensity={reduced ? 60 : 90}
         distance={70}
-        decay={1.2}
+        decay={1.85}
         color="#ffd9a0"
         castShadow={shadowMap > 0}
         shadow-mapSize={[shadowMap || 1024, shadowMap || 1024]}
