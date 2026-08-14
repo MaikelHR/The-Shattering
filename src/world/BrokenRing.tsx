@@ -1,8 +1,8 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Group } from 'three';
-import { scrollState, damp } from '../scrollState';
-import { ringSplit } from './mood';
+import { scrollState, damp, clamp } from '../scrollState';
+import { ringSplit, shock } from './mood';
 
 /** Tres arcos de 110° que juntos cierran un anillo. */
 const ARC = (Math.PI * 2) / 3 - 0.18;
@@ -26,13 +26,20 @@ export default function BrokenRing({ reduced }: { reduced: boolean }) {
   useFrame((_, delta) => {
     split.current = damp(split.current, ringSplit(scrollState.position), 2, delta);
 
+    // El empujón del golpe. Va SIN suavizar y sumado a la apertura: los tres
+    // pedazos salen disparados en el instante de la Fractura y después se
+    // recogen a la separación que les toca. Sin esto el Anillo se abre como
+    // una puerta, y lo que tiene que hacer es reventar.
+    const kick = clamp(shock.value, 0, 1);
+    const open = split.current + kick * 0.55;
+
     for (let i = 0; i < SEGMENTS.length; i++) {
       const g = segments.current[i];
       if (!g) continue;
       const dir = SEGMENTS[i] + ARC / 2;
       // Cada pedazo se aparta en la dirección de su propio centro.
-      g.position.set(Math.cos(dir) * split.current * 2.2, Math.sin(dir) * split.current * 2.2, 0);
-      g.rotation.z = split.current * (i % 2 === 0 ? 0.13 : -0.16);
+      g.position.set(Math.cos(dir) * open * 2.2, Math.sin(dir) * open * 2.2, 0);
+      g.rotation.z = open * (i % 2 === 0 ? 0.13 : -0.16);
     }
 
     if (!reduced && root.current) root.current.rotation.z += delta * 0.008;

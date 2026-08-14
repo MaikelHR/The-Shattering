@@ -2,8 +2,8 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Color } from 'three';
 import type { AmbientLight, Mesh, MeshBasicMaterial } from 'three';
-import { scrollState, damp } from '../scrollState';
-import { burn, rot } from './mood';
+import { scrollState, damp, clamp } from '../scrollState';
+import { burn, rot, shock } from './mood';
 
 /**
  * EL AIRE
@@ -35,6 +35,9 @@ const BURN_FILL = new Color('#ff8a44');
 const RAY = new Color('#f6cf96');
 const BURN_RAY = new Color('#ff8434');
 
+/** El gris ceniza al que se va todo cuando el Anillo se parte. */
+const ASH = new Color('#3a3a38');
+
 export default function Atmosphere({ sun }: { sun: Mesh | null }) {
   const fill = useRef<AmbientLight>(null);
   const sick = useRef(0);
@@ -45,15 +48,27 @@ export default function Atmosphere({ sun }: { sun: Mesh | null }) {
     sick.current = damp(sick.current, rot(pos), 2, delta);
     fire.current = damp(fire.current, burn(pos), 1.8, delta);
 
+    // El golpe de la Fractura no se suaviza acá: ya viene suavizado por su
+    // propia timeline, y volver a amortiguarlo le quitaría el golpe.
+    const hit = clamp(shock.value, 0, 1);
+
     // La niebla es lo que más lejos llega, así que es lo primero que se ve
     // cambiar: el horizonte se pone rojo antes que el suelo de al lado.
     const fog = state.scene.fog;
-    if (fog) fog.color.lerpColors(HAZE, ROT_HAZE, sick.current).lerp(BURN_HAZE, fire.current);
+    if (fog) {
+      fog.color
+        .lerpColors(HAZE, ROT_HAZE, sick.current)
+        .lerp(BURN_HAZE, fire.current)
+        .lerp(ASH, hit * 0.85);
+    }
 
     const f = fill.current;
     if (f) {
-      f.color.lerpColors(FILL, ROT_FILL, sick.current).lerp(BURN_FILL, fire.current);
-      f.intensity = 0.12 + sick.current * 0.1 + fire.current * 0.14;
+      f.color
+        .lerpColors(FILL, ROT_FILL, sick.current)
+        .lerp(BURN_FILL, fire.current)
+        .lerp(ASH, hit * 0.7);
+      f.intensity = 0.12 + sick.current * 0.1 + fire.current * 0.14 - hit * 0.06;
     }
 
     // El material del emisor no se ve nunca —queda dentro de la copa— pero

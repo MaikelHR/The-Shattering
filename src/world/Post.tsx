@@ -12,10 +12,19 @@ import {
   ToneMapping,
   Vignette,
 } from '@react-three/postprocessing';
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { BlendFunction, KernelSize, ToneMappingMode } from 'postprocessing';
+import type { HueSaturationEffect } from 'postprocessing';
 import type { Mesh } from 'three';
+import { clamp } from '../scrollState';
+import { shock } from './mood';
 import { QUALITY } from './quality';
 import type { Quality } from './quality';
+
+/** El virado en reposo: el verde oliva del juego. */
+const HUE = -0.02;
+const SATURATION = 0.14;
 
 /**
  * EL POSTPROCESADO
@@ -48,6 +57,16 @@ export default function Post({
   reduced: boolean;
 }) {
   const q = QUALITY[quality];
+  const grading = useRef<HueSaturationEffect>(null);
+
+  // El único efecto que se toca desde el bucle. Cuando el Anillo se parte, el
+  // color se va del cuadro entero y vuelve: eso sí pide un filtro, porque no
+  // es que la luz cambie de color, es que deja de haber color.
+  useFrame(() => {
+    const g = grading.current;
+    if (!g) return;
+    g.saturation = SATURATION - clamp(shock.value, 0, 1) * 0.95;
+  });
 
   return (
     <EffectComposer multisampling={q.multisampling} enableNormalPass={false}>
@@ -103,7 +122,7 @@ export default function Post({
       <ChromaticAberration offset={[0.00015, 0.00015]} />
 
       {/* El virado: baja el rojo hacia el oliva y sube el contraste. */}
-      <HueSaturation hue={-0.02} saturation={0.14} />
+      <HueSaturation ref={grading} hue={HUE} saturation={SATURATION} />
       <BrightnessContrast brightness={0.01} contrast={0.05} />
 
       {/* El tone mapping va acá y no en el renderer. Con composer, la escena

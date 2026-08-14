@@ -2,8 +2,8 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { BackSide, Color, ShaderMaterial, Vector3 } from 'three';
 import type { Mesh } from 'three';
-import { scrollState, damp } from '../scrollState';
-import { burn, rot } from './mood';
+import { scrollState, damp, clamp } from '../scrollState';
+import { burn, rot, shock } from './mood';
 import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
 
 /**
@@ -86,6 +86,10 @@ const BURN_HORIZON = new Color('#4a220e');
 const BURN_ZENITH = new Color('#2c1407');
 const BURN_GLOW = new Color('#ff7a2e');
 
+/** Y el cielo de la Fractura: ceniza, un instante. */
+const ASH_HORIZON = new Color('#33332f');
+const ASH_ZENITH = new Color('#1a1a18');
+
 export default function Sky({ strength = 0.46 }: { strength?: number }) {
   const dome = useRef<Mesh>(null);
   const dir = useRef(new Vector3());
@@ -127,13 +131,22 @@ export default function Sky({ strength = 0.46 }: { strength?: number }) {
     fire.current = damp(fire.current, burn(pos), 1.8, delta);
 
     // Primero la podredumbre y encima el incendio: el segundo llega mucho
-    // después y tiene que poder pisar lo que haya quedado del primero.
+    // después y tiene que poder pisar lo que haya quedado del primero. Y el
+    // golpe de la Fractura por encima de todo, que es de un instante.
+    const hit = clamp(shock.value, 0, 1);
     const u = material.uniforms;
-    u.uHorizon.value.lerpColors(HORIZON, ROT_HORIZON, sick.current).lerp(BURN_HORIZON, fire.current);
-    u.uZenith.value.lerpColors(ZENITH, ROT_ZENITH, sick.current).lerp(BURN_ZENITH, fire.current);
+    u.uHorizon.value
+      .lerpColors(HORIZON, ROT_HORIZON, sick.current)
+      .lerp(BURN_HORIZON, fire.current)
+      .lerp(ASH_HORIZON, hit * 0.9);
+    u.uZenith.value
+      .lerpColors(ZENITH, ROT_ZENITH, sick.current)
+      .lerp(BURN_ZENITH, fire.current)
+      .lerp(ASH_ZENITH, hit * 0.9);
     u.uGlow.value.lerpColors(GLOW, BURN_GLOW, fire.current);
-    // Un árbol de ciento veinte unidades ardiendo ilumina medio cielo.
-    u.uGlowStrength.value = strength * (1 + fire.current * 1.4);
+    // Un árbol de ciento veinte unidades ardiendo ilumina medio cielo; y
+    // cuando el Anillo se parte, el halo se retira con él.
+    u.uGlowStrength.value = strength * (1 + fire.current * 1.4) * (1 - hit * 0.8);
   });
 
   return (

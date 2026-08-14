@@ -367,3 +367,47 @@ De paso salió un fallo latente que llevaba ahí desde el principio:
 disparador se crea cuando ya está dentro de la pantalla —al recargar a mitad de
 página— no revelaba su texto nunca. Ahora hay un `onRefresh` que lo adelanta al
 final si ya está dentro.
+
+### 0.8 · La Fractura — 14 de agosto
+
+El tercero de los cinco momentos, y el que más se echaba de menos. La sección
+del capítulo II se clava metro y medio de pantalla y ese tramo conduce una
+timeline con `scrub`: la grieta se dibuja desde donde está el Anillo, el mundo
+pierde el color y la luz, un destello lo tapa todo, y al salir el Anillo está
+partido en tres. Todo bajo el dedo, hacia adelante y hacia atrás.
+
+- [x] `components/Fracture.tsx`: el pin, la grieta con DrawSVG y el destello
+- [x] `shock` en `world/mood.ts`: el golpe que leen el Árbol, la niebla, el
+      cielo, el Anillo y el postprocesado
+- [x] Las anclas de cámara cuentan con el espaciador del pin
+
+**Se clava con `pin` y no con `position: sticky`**, que habría sido más simple.
+Sticky no funciona aquí: ScrollSmoother mueve el contenido con un `transform`,
+y un elemento pegajoso dentro de algo que se transforma se mueve con ello.
+
+**Y el pin obliga a corregir la medida de las anclas.** ScrollTrigger mete la
+sección dentro de un `pin-spacer`, y es el espaciador el que ocupa los dos
+metros y medio de scroll mientras la sección se queda quieta dentro. Midiendo la
+sección, su centro caía al principio del tramo clavado: la cámara llegaba al
+encuadre del capítulo II antes de que empezara la Fractura y se iba justo cuando
+ocurría. La corrección es una línea —medir el espaciador si existe— pero hay que
+verla venir.
+
+Lo que salvó el resto: **con ScrollSmoother, el pin de ScrollTrigger no usa
+`position: fixed` sino transformaciones** (la comprobación está en el `pinType`
+del `scrollerProxy`, que ScrollSmoother no declara y por eso sale `transform`).
+Como `offsetTop` es una propiedad de layout y las transformaciones no la tocan,
+las otras diecisiete anclas siguieron siendo válidas sin tocar nada.
+
+**El color se va con un filtro, y es la primera vez que se hace así.** En todo
+el resto del proyecto la regla es la contraria —el mundo cambia de color porque
+cambia la luz, no porque haya un filtro encima—, y aquí se rompe a propósito: en
+la Fractura no es que la luz cambie de color, es que deja de haber color. Eso es
+saturación, y la saturación es un filtro. Va con la niebla y el cielo yéndose a
+ceniza al mismo tiempo, para que no se lea como un efecto pegado.
+
+Un último detalle que casi se cuela: con movimiento reducido la timeline de la
+grieta no se crea, así que los trazos se habrían quedado **dibujados y quietos**
+en mitad de la pantalla para siempre. Ahora, con movimiento reducido, la grieta
+y el destello ni se pintan; el golpe del mundo sí sigue, porque lo mueve el dedo
+del lector y no un reloj.

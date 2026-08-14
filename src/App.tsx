@@ -6,6 +6,7 @@ import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import Chapter from './components/Chapter';
 import ChapterRail from './components/ChapterRail';
 import Preloader, { PRELOADER_TIMEOUT } from './components/Preloader';
+import Fracture from './components/Fracture';
 import { ALIGN, BEATS, CHAPTERS } from './story';
 import { setChapterAnchors, writeScroll } from './scrollState';
 
@@ -23,6 +24,21 @@ import { setChapterAnchors, writeScroll } from './scrollState';
 const World = lazy(() => import('./world/World'));
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, useGSAP);
+
+/**
+ * A qué altura de scroll queda centrada una sección.
+ *
+ * El detalle de la envoltura no es opcional. La Fractura clava su sección en
+ * pantalla, y para eso ScrollTrigger la mete dentro de un `pin-spacer`: es el
+ * espaciador el que ocupa los dos metros y medio de scroll, mientras la
+ * sección se queda quieta dentro. Midiendo la sección, el centro caería al
+ * principio del tramo clavado y la cámara llegaría al encuadre del capítulo II
+ * antes de que empiece la Fractura, para irse justo cuando ocurre.
+ */
+function anchorOf(el: HTMLElement): number {
+  const box = el.parentElement?.classList.contains('pin-spacer') ? el.parentElement : el;
+  return box.offsetTop + box.offsetHeight / 2 - window.innerHeight / 2;
+}
 
 // En móvil, la barra de URL que aparece y desaparece cambia el alto del
 // viewport y dispara un resize. Sin esto, ScrollTrigger remide toda la
@@ -118,8 +134,7 @@ export default function App() {
         setChapterAnchors(
           BEATS.map((_, i) => {
             const el = document.querySelector<HTMLElement>(`[data-chapter="${i}"]`);
-            if (!el) return 0;
-            return el.offsetTop + el.offsetHeight / 2 - window.innerHeight / 2;
+            return el ? anchorOf(el) : 0;
           }),
         );
 
@@ -209,7 +224,7 @@ export default function App() {
     const target = document.querySelector<HTMLElement>(`[data-chapter="${index}"]`);
     if (!target) return;
 
-    const centrar = target.offsetTop + target.offsetHeight / 2 - window.innerHeight / 2;
+    const centrar = anchorOf(target);
 
     if (smoother.current) {
       // `smooth: true` deja que el propio suavizado haga el viaje.
@@ -234,6 +249,10 @@ export default function App() {
       <div className="progress" aria-hidden="true">
         <span className="progress__bar" />
       </div>
+
+      {/* Fuera del contenido suavizado, como todo lo fijo: la grieta cruza la
+          pantalla, no la página. */}
+      <Fracture armed={armed} reduced={reduced} />
 
       <ChapterRail active={active} onSelect={goToChapter} />
 

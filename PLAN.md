@@ -44,6 +44,7 @@ cinco, la escena deja de leerse como maqueta aunque no sea fotorrealista.
 | Nueve capítulos y el recorrido de cámara | ✅ |
 | Los cambios de color del mundo (podredumbre, incendio) | ✅ |
 | La entrada: runa, destello y carga diferida | ✅ |
+| La Fractura, clavada en pantalla | ✅ |
 | El mundo alrededor: la capital, el cielo | ⏳ replanteado, ver abajo |
 | Atmósfera viva: hojas, ceniza, sonido | ⏳ |
 | GSAP a fondo: la entrada, la Fractura, el texto | ⏳ |
@@ -56,7 +57,7 @@ medias:
 |---|---|
 | La runa dibujándose en la entrada y el destello que abre el mundo | ✅ |
 | El Árbol con los rayos entre las ramas y las hojas cayendo | ½ (los rayos existen pero flojos; no hay hojas) |
-| La Fractura pinneada: la grieta, el golpe, el color que se va | ⏳ |
+| La Fractura pinneada: la grieta, el golpe, el color que se va | ✅ |
 | El descenso a las raíces, con la luz encendida abajo | ✅ |
 | El mapa que se dibuja solo al final, y la cámara que te sueltan | ⏳ |
 
@@ -132,10 +133,11 @@ pinea 250vh y el progreso del pin conduce una timeline:
 Con `scrub: 1` todo eso ocurre bajo el control del dedo, hacia adelante y hacia
 atrás. Es el tipo de momento que la gente rebobina.
 
-- [ ] La timeline pinneada
-- [ ] La grieta en SVG con DrawSVG
-- [ ] Remedir las anclas: el pin cambia la altura de la página, y el `onRefresh`
-      que ya existe tiene que seguir dando lo mismo con el spacer en medio
+- [x] La timeline pinneada, con `scrub`
+- [x] La grieta en SVG con DrawSVG, y el destello
+- [x] Las anclas cuentan con el espaciador del pin. Comprobado: las nueve
+      secciones con texto siguen centrándose a 0 px, el riel acierta y los
+      revelados disparan. 181 fps.
 
 ### 3 · El mundo alrededor
 
@@ -234,13 +236,13 @@ Vale tanto como la lista de arriba: son decisiones tomadas, no olvidos.
 
 | Concepto | Al empezar | Hoy | Objetivo |
 |---|---|---|---|
-| **JS que bloquea el primer pintado** (gzip) | 345 KB | **124 KB** | < 200 KB |
-| JS total (gzip) | 345 KB | 554 KB | — |
+| **JS que bloquea el primer pintado** (gzip) | 345 KB | **125 KB** | < 200 KB |
+| JS total (gzip) | 345 KB | 555 KB | — |
 | Primer pintado | — | 84 ms (local) | < 2,5 s en conexión buena |
 | Imágenes | 0 | 965 KB (dos texturas de roca) | < 1,5 MB |
 | Audio | 0 | 0 | < 250 KB |
 | fps | — | 180 (Radeon RX 7600) | > 60 |
-| Alto de la página | — | 16,6 pantallas | — |
+| Alto de la página | — | 18,1 pantallas | — |
 
 El presupuesto pasa a medir **lo que bloquea el primer pintado**, que es lo que
 de verdad se nota, y no el total. Antes eran lo mismo porque todo llegaba junto;

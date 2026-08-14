@@ -49,6 +49,42 @@ body {
   overflow-x: hidden;
 }
 
+/* ---- La Fractura ---- */
+.fracture {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.fracture__crack {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  /* Apagada hasta que la timeline la enciende (ver Fracture.tsx). */
+  opacity: 0;
+  /* Casi blanca y muy fina: una grieta en el cristal, no una raya de tiza. */
+  stroke: #fff3dc;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(255, 226, 168, 0.85));
+}
+
+.fracture__flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(
+    circle at 51% 20%,
+    #fffaf0 0%,
+    rgba(255, 236, 199, 0.92) 26%,
+    rgba(232, 195, 122, 0.35) 58%,
+    rgba(232, 195, 122, 0) 82%
+  );
+}
+
 /* ---- La entrada ---- */
 .preloader {
   position: fixed;
