@@ -209,12 +209,17 @@ body {
 .chapter__rune {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   flex: none;
   border: 1px solid var(--line);
   border-radius: 50%;
   font-size: 11px;
+  /* El rune es una insignia, no un tramo de la etiqueta: sin esto hereda el
+     tracking de .chapter__label (0.24em) y «VIII» pasa de 26 a 37 píxeles
+     dentro de un círculo de 28. Además el espacio que el tracking añade
+     detrás de la última letra descentra el numeral hacia la izquierda. */
+  letter-spacing: normal;
   color: var(--gold);
 }
 
@@ -253,7 +258,8 @@ body {
 
 .rail__line {
   position: absolute;
-  left: 12px;
+  /* El centro del círculo de 27px, para que la línea pase por dentro. */
+  left: 13px;
   top: 6px;
   bottom: 6px;
   width: 1px;
@@ -297,8 +303,9 @@ body {
 .rail__rune {
   display: grid;
   place-items: center;
-  width: 25px;
-  height: 25px;
+  /* Con hueco para cuatro caracteres: los capítulos llegan hasta el IX. */
+  width: 27px;
+  height: 27px;
   flex: none;
   border: 1px solid var(--line);
   border-radius: 50%;
