@@ -107,8 +107,16 @@ src/
 ```
 
 **Para reescribir la historia o cambiar el recorrido, editá solo `src/story.ts`.**
-Cada capítulo define su texto, dónde está la cámara, hacia dónde mira y cuánto de
-esa mirada es composición (`frame`).
+
+El recorrido está hecho de **estaciones**: puntos donde la cámara se detiene, con
+el viaje interpolado entre una y la siguiente. Y una estación no tiene por qué
+llevar texto. Las que no lo llevan son **respiros**: el lector sigue bajando, el
+mundo se mueve y no hay nada que leer.
+
+Sirven para dos cosas a la vez. Dejan respirar la lectura, y le dan a la cámara
+puntos intermedios por donde pasar: con cinco puntos sueltos, el viaje entre uno y
+otro es una recta larga que atraviesa el mundo sin que nadie la conduzca. Añadir
+un respiro es añadir un nodo a esa curva.
 
 ## Detalles que vale la pena mirar en el código
 

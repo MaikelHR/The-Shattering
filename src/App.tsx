@@ -6,7 +6,7 @@ import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import World from './world/World';
 import Chapter from './components/Chapter';
 import ChapterRail from './components/ChapterRail';
-import { CHAPTERS } from './story';
+import { BEATS, CHAPTERS } from './story';
 import { setChapterAnchors, writeScroll } from './scrollState';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, useGSAP);
@@ -51,11 +51,12 @@ export default function App() {
   const { contextSafe } = useGSAP(
     () => {
       // A qué altura de scroll queda centrada cada sección. Es lo que le
-      // permite al mundo 3D estar en el encuadre del capítulo que se está
-      // leyendo, y no en el que tocaría por regla de tres.
+      // permite al mundo 3D estar en el encuadre de la estación que se está
+      // leyendo, y no en el que tocaría por regla de tres. Se miden todas,
+      // también los respiros: son estaciones de pleno derecho para la cámara.
       const measureChapters = () =>
         setChapterAnchors(
-          CHAPTERS.map((_, i) => {
+          BEATS.map((_, i) => {
             const el = document.querySelector<HTMLElement>(`[data-chapter="${i}"]`);
             if (!el) return 0;
             return el.offsetTop + el.offsetHeight / 2 - window.innerHeight / 2;
@@ -70,13 +71,13 @@ export default function App() {
         start: 'top top',
         end: 'bottom bottom',
         onUpdate: (self) =>
-          writeScroll(self.scroll(), self.progress, self.getVelocity(), CHAPTERS.length),
+          writeScroll(self.scroll(), self.progress, self.getVelocity(), BEATS.length),
         // onRefresh también, no solo onUpdate: al montar (y cuando el
         // navegador restaura el scroll tras recargar) nadie mueve la
         // rueda, y la cámara se quedaría esperando en el capítulo I.
         onRefresh: (self) => {
           measureChapters();
-          writeScroll(self.scroll(), self.progress, 0, CHAPTERS.length);
+          writeScroll(self.scroll(), self.progress, 0, BEATS.length);
         },
       });
 
@@ -88,10 +89,10 @@ export default function App() {
       // enteras que nunca llegan a estar activas. Esos saltos igual disparan
       // onEnter, mientras que onToggle se los pierde y el riel se queda
       // marcando un capítulo que ya no es donde estás.
-      CHAPTERS.forEach((_, i) => {
-        const markActive = () => setActive(i);
+      CHAPTERS.forEach((chapter, order) => {
+        const markActive = () => setActive(order);
         ScrollTrigger.create({
-          trigger: `[data-chapter="${i}"]`,
+          trigger: `[data-chapter="${chapter.index}"]`,
           start: 'top 55%',
           end: 'bottom 55%',
           onEnter: markActive,
@@ -166,8 +167,11 @@ export default function App() {
           <p className="hero__scroll hero__line">Desplazate para descender</p>
         </header>
 
-        {CHAPTERS.map((c, i) => (
-          <Chapter key={c.rune} data={c} index={i} reduced={reduced} />
+        {/* Una sección por estación. Las que no llevan capítulo ocupan scroll
+            y no muestran nada: son el respiro entre dos textos, y de paso el
+            tramo donde la cámara hace su viaje sin que nadie lea. */}
+        {BEATS.map((beat, i) => (
+          <Chapter key={i} chapter={beat.chapter} index={i} reduced={reduced} />
         ))}
 
         <footer className="colophon">

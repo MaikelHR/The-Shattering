@@ -23,7 +23,7 @@ export default function BrokenRing({ reduced }: { reduced: boolean }) {
   const split = useRef(0);
 
   useFrame((_, delta) => {
-    const target = mapRange(scrollState.position, 0.5, 1.8, 0, 1);
+    const target = mapRange(scrollState.position, 1.0, 3.6, 0, 1);
     split.current = damp(split.current, target, 2, delta);
 
     for (let i = 0; i < SEGMENTS.length; i++) {

@@ -25,7 +25,7 @@ export default function ChapterRail({ active, onSelect }: ChapterRailProps) {
             <button
               type="button"
               className="rail__link"
-              onClick={() => onSelect(i)}
+              onClick={() => onSelect(c.index)}
               aria-label={`Capítulo ${c.rune}: ${c.label}`}
               aria-current={i === active ? 'true' : undefined}
             >

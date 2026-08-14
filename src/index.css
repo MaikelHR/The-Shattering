@@ -162,6 +162,13 @@ body {
   padding: 0 var(--gutter) 0 var(--gutter-left);
 }
 
+/* Los respiros: ocupan scroll y no muestran nada. Más cortos que un
+   capítulo, que si no la espera entre textos se hace larga. */
+.chapter--rest {
+  min-height: 62vh;
+  min-height: 62svh;
+}
+
 /* Alternamos el lado para que la vista del mundo respire. El lado lo
    decide el componente con data-align: antes era :nth-child(even), que
    contaba también el <header> del hero y dejaba la serie corrida. */

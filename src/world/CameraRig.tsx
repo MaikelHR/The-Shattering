@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
 import type { PerspectiveCamera } from 'three';
-import { CHAPTERS } from '../story';
+import { BEATS } from '../story';
 import { scrollState, damp, clamp, lerp, decayVelocity } from '../scrollState';
 
 /** Cuántos grados se abre el lente scrolleando a fondo. 0 lo desactiva. */
@@ -24,9 +24,9 @@ const FULL_TILT = 2600;
  */
 export default function CameraRig({ reduced }: { reduced: boolean }) {
   const { camera } = useThree();
-  const targetPos = useRef(new Vector3(...CHAPTERS[0].camera));
-  const targetLook = useRef(new Vector3(...CHAPTERS[0].lookAt));
-  const currentLook = useRef(new Vector3(...CHAPTERS[0].lookAt));
+  const targetPos = useRef(new Vector3(...BEATS[0].camera));
+  const targetLook = useRef(new Vector3(...BEATS[0].lookAt));
+  const currentLook = useRef(new Vector3(...BEATS[0].lookAt));
   const tmpA = useRef(new Vector3());
   const tmpB = useRef(new Vector3());
   const baseFov = useRef((camera as PerspectiveCamera).fov);
@@ -38,19 +38,19 @@ export default function CameraRig({ reduced }: { reduced: boolean }) {
     // scroll se mueve y, al soltar, el último valor quedaría clavado.
     decayVelocity(delta);
 
-    const last = CHAPTERS.length - 1;
-    // Posición continua dentro de la lista de capítulos: 0 -> last
+    const last = BEATS.length - 1;
+    // Posición continua dentro de la lista de estaciones: 0 -> last
     const pos = clamp(scrollState.position, 0, last);
     const i = Math.max(0, Math.min(last - 1, Math.floor(pos)));
-    const next = CHAPTERS[Math.min(last, i + 1)];
+    const next = BEATS[Math.min(last, i + 1)];
     const f = pos - i;
 
     // Interpolamos entre el capítulo i y el siguiente
-    tmpA.current.set(...CHAPTERS[i].camera);
+    tmpA.current.set(...BEATS[i].camera);
     tmpB.current.set(...next.camera);
     targetPos.current.copy(tmpA.current).lerp(tmpB.current, f);
 
-    tmpA.current.set(...CHAPTERS[i].lookAt);
+    tmpA.current.set(...BEATS[i].lookAt);
     tmpB.current.set(...next.lookAt);
     targetLook.current.copy(tmpA.current).lerp(tmpB.current, f);
 
@@ -61,7 +61,7 @@ export default function CameraRig({ reduced }: { reduced: boolean }) {
     // distancia, en proporción a lo angosta que sea la ventana.
     const portrait = 1 - clamp((state.size.width / state.size.height - 0.9) / 0.7, 0, 1);
     if (portrait > 0) {
-      targetLook.current.x -= lerp(CHAPTERS[i].frame, next.frame, f) * portrait;
+      targetLook.current.x -= lerp(BEATS[i].frame, next.frame, f) * portrait;
       // Mirar más abajo sube el sujeto en el encuadre, que es donde queda
       // el hueco cuando el texto se va al pie de la pantalla.
       targetLook.current.y -= 2.6 * portrait;

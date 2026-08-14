@@ -188,7 +188,7 @@ export default function Erdtree({
     if (!l) return;
 
     // La Fractura le baja la luz al Árbol y no se la devuelve.
-    const target = mapRange(scrollState.position, 0.55, 1.7, 1, 0.28);
+    const target = mapRange(scrollState.position, 1.1, 3.4, 1, 0.28);
     blaze.current = damp(blaze.current, target, 2.2, delta);
 
     const shader = bark.userData.shader;

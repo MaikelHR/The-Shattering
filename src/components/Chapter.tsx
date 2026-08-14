@@ -8,13 +8,14 @@ import type { Chapter as ChapterData } from '../story';
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 interface ChapterProps {
-  data: ChapterData;
+  /** Si falta, la sección es un respiro: ocupa scroll y no muestra nada. */
+  chapter?: ChapterData;
   index: number;
   reduced: boolean;
 }
 
 /**
- * Una sección de la historia.
+ * Una estación de la historia.
  *
  * Lo que se aprende acá:
  *  - useGSAP() reemplaza a useEffect y limpia solo las animaciones
@@ -27,16 +28,16 @@ interface ChapterProps {
  * OJO con SplitText y el scope: el scope de useGSAP funciona para
  * gsap.to/from, pero SplitText resuelve los selectores con su propio
  * querySelectorAll sobre el documento entero. Con un string ('.chapter__title')
- * cada capítulo parte los cinco títulos de la página, se pisan entre sí y
+ * cada capítulo parte los títulos de toda la página, se pisan entre sí y
  * terminan todos invisibles. Por eso le pasamos el elemento por ref.
  */
-export default function Chapter({ data, index, reduced }: ChapterProps) {
+export default function Chapter({ chapter, index, reduced }: ChapterProps) {
   const root = useRef<HTMLElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
 
   useGSAP(
     () => {
-      if (reduced || !title.current) return;
+      if (reduced || !chapter || !title.current) return;
 
       const split = new SplitText(title.current, {
         type: 'words',
@@ -78,8 +79,15 @@ export default function Chapter({ data, index, reduced }: ChapterProps) {
 
       return () => split.revert();
     },
-    { scope: root, dependencies: [reduced] },
+    { scope: root, dependencies: [reduced, chapter] },
   );
+
+  // Un respiro: la sección existe para ocupar scroll y para que la cámara
+  // tenga su estación, pero no hay nada que leer. Más corta que un capítulo,
+  // que si no se hace larga la espera.
+  if (!chapter) {
+    return <section className="chapter chapter--rest" ref={root} data-chapter={index} aria-hidden="true" />;
+  }
 
   return (
     <section
@@ -88,20 +96,20 @@ export default function Chapter({ data, index, reduced }: ChapterProps) {
       data-chapter={index}
       // La alternancia izquierda/derecha se declara acá y no con
       // :nth-child(even), que contaba también el <header> del hero.
-      data-align={index % 2 === 0 ? 'left' : 'right'}
+      data-align={index % 4 === 0 ? 'left' : 'right'}
     >
       <div className="chapter__inner">
         <p className="chapter__label">
           <span className="chapter__rune" aria-hidden="true">
-            {data.rune}
+            {chapter.rune}
           </span>
-          {data.label}
+          {chapter.label}
         </p>
         <h2 className="chapter__title" ref={title}>
-          {data.title}
+          {chapter.title}
         </h2>
         <div className="chapter__body">
-          {data.body.map((p, i) => (
+          {chapter.body.map((p, i) => (
             <p key={i}>{p}</p>
           ))}
         </div>

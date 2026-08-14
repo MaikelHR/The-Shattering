@@ -33,19 +33,26 @@ export interface TreeParams {
   upBias: number;
   /** Probabilidad de que una rama se abra en tres en vez de en dos. */
   tripleChance: number;
+  /**
+   * Cuántas generaciones mantienen un eje central grueso del que salen ramas
+   * laterales, en vez de partirse en dos iguales. Es lo que separa un árbol
+   * viejo de uno joven: el tronco sube entero y la copa se abre arriba.
+   */
+  trunkLevels: number;
 }
 
 export const DEFAULT_TREE: TreeParams = {
   seed: 20260813,
-  levels: 8,
-  trunkLength: 3.4,
-  trunkRadius: 0.82,
-  lengthFalloff: 0.76,
+  levels: 11,
+  trunkLength: 3.2,
+  trunkRadius: 1.5,
+  lengthFalloff: 0.79,
   radiusFalloff: 0.66,
-  spreadMin: 0.26,
-  spreadMax: 0.62,
-  upBias: 0.11,
+  spreadMin: 0.34,
+  spreadMax: 0.78,
+  upBias: 0.04,
   tripleChance: 0.5,
+  trunkLevels: 4,
 };
 
 export interface TreeGeometryData {
@@ -112,18 +119,57 @@ export function buildTree(params: TreeParams = DEFAULT_TREE): TreeGeometryData {
     }
     if (level >= params.levels - 2) tips.push(end);
 
+    const roll = random() * Math.PI * 2;
+
+    // ---- Tramo de tronco ----
+    // Mientras dura, la rama no se parte en iguales: sigue de largo, apenas
+    // más fina, y suelta ramas laterales mucho más delgadas. Un árbol que se
+    // bifurca en dos desde abajo es un arbusto grande, por muy alto que sea.
+    if (level < params.trunkLevels) {
+      // El eje sigue subiendo, casi vertical y casi con el mismo grosor.
+      const trunkDir = dir.clone();
+      trunkDir.y += 0.16;
+      perpendicular(dir, axis).applyAxisAngle(dir, roll);
+      trunkDir.applyAxisAngle(axis, 0.07 + random() * 0.06).normalize();
+
+      grow(
+        end,
+        trunkDir,
+        length * (0.86 + random() * 0.08),
+        radius * (0.9 - level * 0.015),
+        level + 1,
+      );
+
+      // Y una o dos ramas maestras, que salen abiertas y bastante más finas.
+      const limbs = level === 0 ? 1 : 1 + (random() < 0.5 ? 1 : 0);
+      for (let i = 0; i < limbs; i++) {
+        const around = roll + Math.PI * (0.6 + i) + (random() - 0.5) * 0.8;
+        perpendicular(dir, axis).applyAxisAngle(dir, around);
+        // Bien abiertas y bien largas: son ellas las que dan el vuelo de la
+        // copa. Cortas y empinadas, el Árbol sale con forma de álamo.
+        const limbDir = dir.clone().applyAxisAngle(axis, 0.85 + random() * 0.35);
+        limbDir.y += 0.06;
+        limbDir.normalize();
+
+        grow(
+          end,
+          limbDir,
+          length * (0.82 + random() * 0.22),
+          radius * (0.42 + random() * 0.1),
+          // Las ramas maestras ya no son tronco: pasan al régimen de copa.
+          Math.max(params.trunkLevels, level + 1),
+        );
+      }
+      return;
+    }
+
+    // ---- Copa ----
     // Dos hijas casi siempre, tres de vez en cuando: con un número fijo el
     // árbol se ve tejido a máquina.
     const children = random() < params.tripleChance ? 3 : 2;
-    const roll = random() * Math.PI * 2;
 
     for (let i = 0; i < children; i++) {
-      // Los dos primeros niveles apenas se abren: así hay un tronco que sube
-      // antes de que empiece el ramaje. Sin esto el Árbol se bifurca a ras de
-      // la meseta y se desmorona hacia un lado.
-      const opening = level < 2 ? 0.42 : 1;
-      const spread =
-        (params.spreadMin + random() * (params.spreadMax - params.spreadMin)) * opening;
+      const spread = params.spreadMin + random() * (params.spreadMax - params.spreadMin);
       const around = roll + (i / children) * Math.PI * 2 + (random() - 0.5) * 0.5;
 
       perpendicular(dir, axis).applyAxisAngle(dir, around);
@@ -137,7 +183,10 @@ export function buildTree(params: TreeParams = DEFAULT_TREE): TreeGeometryData {
         end,
         childDir,
         length * params.lengthFalloff * (0.9 + random() * 0.2),
-        radius * params.radiusFalloff,
+        // Regla de Leonardo: la sección de la madre se reparte entre las
+        // hijas, así que el radio se divide por la raíz de cuántas son. Es
+        // lo que hace que el afinado se vea natural y no impuesto.
+        (radius / Math.sqrt(children)) * (0.94 + random() * 0.1),
         level + 1,
       );
     }
@@ -167,7 +216,7 @@ export const TREE = buildTree(DEFAULT_TREE);
  * Así que el Árbol vive lejos, en la cordillera del norte, y mide seis
  * veces y media lo que medía cuando estaba plantado en el patio.
  */
-export const TREE_SCALE = 8.6;
+export const TREE_SCALE = 6.4;
 export const TREE_POSITION: [number, number, number] = [6, 24, -178];
 
 /** Altura real del Árbol en el mundo, ya escalada. */

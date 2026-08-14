@@ -30,7 +30,7 @@ export default function Core({ reduced }: { reduced: boolean }) {
     // Latido base, siempre presente.
     const beat = reduced ? 0.5 : 0.5 + Math.sin(t * 1.6) * 0.18 + Math.sin(t * 3.1) * 0.06;
     // Cerca del capítulo IV el núcleo se revela.
-    const reveal = mapRange(scrollState.position, 2.3, 3.2, 0, 1);
+    const reveal = mapRange(scrollState.position, 4.6, 6.3, 0, 1);
     const target = beat * (0.7 + reveal * 3.2);
 
     intensity.current = damp(intensity.current, target, 4, delta);
