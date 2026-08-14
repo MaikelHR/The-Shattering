@@ -2,6 +2,9 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { BackSide, Color, ShaderMaterial, Vector3 } from 'three';
 import type { Mesh } from 'three';
+import { scrollState, damp } from '../scrollState';
+import { burn, rot } from './mood';
+import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
 
 /**
  * EL CIELO
@@ -15,6 +18,12 @@ import type { Mesh } from 'three';
  * cámara. Sigue siendo un degradado, pero ahora recibe el mismo
  * tratamiento que todo lo demás. El resplandor no está pegado arriba:
  * apunta al Árbol, así que gira cuando la cámara lo rodea.
+ *
+ * Y el cielo es la superficie más grande del cuadro, así que es donde
+ * más se notan los dos cambios de la historia: cuando el este se pudre
+ * (IV) y cuando el Árbol arde (VIII). No hay filtro de color en el
+ * postprocesado que consiga esto: acá el rojo llega desde el fondo y
+ * la niebla y las luces lo acompañan.
  */
 
 const VERT = /* glsl */ `
@@ -54,12 +63,34 @@ const FRAG = /* glsl */ `
   }
 `;
 
-/** Hacia dónde está el resplandor: la copa del Árbol. */
-const GLOW_TARGET = new Vector3(0, 10.5, 0);
+/**
+ * Hacia dónde está el resplandor: la copa del Árbol, en el mismo punto
+ * donde World pone el emisor de los rayos. Tiene que ser el mismo, o el
+ * halo del cielo y los haces de luz salen de sitios distintos.
+ */
+const GLOW_TARGET = new Vector3(
+  TREE_POSITION[0],
+  TREE_POSITION[1] + TREE.height * 0.78 * TREE_SCALE,
+  TREE_POSITION[2],
+);
+
+/** Los tres cielos: el de la Orden, el de la podredumbre y el del incendio. */
+const HORIZON = new Color('#1c2013');
+const ZENITH = new Color('#333820');
+const GLOW = new Color('#d9a552');
+
+const ROT_HORIZON = new Color('#4d1610');
+const ROT_ZENITH = new Color('#2b0d0c');
+
+const BURN_HORIZON = new Color('#4a220e');
+const BURN_ZENITH = new Color('#2c1407');
+const BURN_GLOW = new Color('#ff7a2e');
 
 export default function Sky({ strength = 0.46 }: { strength?: number }) {
   const dome = useRef<Mesh>(null);
   const dir = useRef(new Vector3());
+  const sick = useRef(0);
+  const fire = useRef(0);
 
   const material = useMemo(
     () =>
@@ -72,9 +103,9 @@ export default function Sky({ strength = 0.46 }: { strength?: number }) {
         toneMapped: false,
         uniforms: {
           uGround: { value: new Color('#0a0a06') },
-          uHorizon: { value: new Color('#1c2013') },
-          uZenith: { value: new Color('#333820') },
-          uGlow: { value: new Color('#d9a552') },
+          uHorizon: { value: HORIZON.clone() },
+          uZenith: { value: ZENITH.clone() },
+          uGlow: { value: GLOW.clone() },
           uGlowDir: { value: new Vector3(0, 1, 0) },
           uGlowStrength: { value: strength },
         },
@@ -82,7 +113,7 @@ export default function Sky({ strength = 0.46 }: { strength?: number }) {
     [strength],
   );
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const d = dome.current;
     if (!d) return;
     // El domo viaja con la cámara: así nunca se le sale del mundo por
@@ -90,6 +121,19 @@ export default function Sky({ strength = 0.46 }: { strength?: number }) {
     d.position.copy(state.camera.position);
     dir.current.copy(GLOW_TARGET).sub(state.camera.position).normalize();
     material.uniforms.uGlowDir.value.copy(dir.current);
+
+    const pos = scrollState.position;
+    sick.current = damp(sick.current, rot(pos), 2, delta);
+    fire.current = damp(fire.current, burn(pos), 1.8, delta);
+
+    // Primero la podredumbre y encima el incendio: el segundo llega mucho
+    // después y tiene que poder pisar lo que haya quedado del primero.
+    const u = material.uniforms;
+    u.uHorizon.value.lerpColors(HORIZON, ROT_HORIZON, sick.current).lerp(BURN_HORIZON, fire.current);
+    u.uZenith.value.lerpColors(ZENITH, ROT_ZENITH, sick.current).lerp(BURN_ZENITH, fire.current);
+    u.uGlow.value.lerpColors(GLOW, BURN_GLOW, fire.current);
+    // Un árbol de ciento veinte unidades ardiendo ilumina medio cielo.
+    u.uGlowStrength.value = strength * (1 + fire.current * 1.4);
   });
 
   return (

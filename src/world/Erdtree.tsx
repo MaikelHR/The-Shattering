@@ -11,8 +11,17 @@ import {
   ShaderMaterial,
 } from 'three';
 import type { DirectionalLight, InstancedMesh, PointLight, Points } from 'three';
-import { scrollState, mapRange, damp } from '../scrollState';
+import { scrollState, damp } from '../scrollState';
+import { blaze as blazeAt, burn as burnAt } from './mood';
 import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
+
+/** El Árbol dorado, y el mismo Árbol ardiendo. */
+const BARK_GOLD = new Color('#e8b455');
+const BARK_EMBER = new Color('#ff5a18');
+const LEAF_GOLD = new Color('#f7d79a');
+const LEAF_EMBER = new Color('#ff8a30');
+const SUN_GOLD = new Color('#ffd9a0');
+const SUN_EMBER = new Color('#ff9a52');
 
 /**
  * EL ÁRBOL ÁUREO
@@ -35,8 +44,9 @@ import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
  * Y lo mejor de tener ramas de verdad: los rayos de luz por fin
  * tienen por dónde colarse.
  *
- * Con la Fractura, el Árbol se apaga y no se recupera: la misma luz
- * aparece abajo, en las raíces (ver Core.tsx).
+ * El Árbol no se apaga con la Fractura: lo que se rompió ahí fue el
+ * Anillo. Se apaga cuando alguien le prende fuego, en el capítulo
+ * VIII, y de ahí no vuelve. Los umbrales están en `mood.ts`.
  */
 export default function Erdtree({
   reduced,
@@ -50,6 +60,7 @@ export default function Erdtree({
   const light = useRef<PointLight>(null);
   const sun = useRef<DirectionalLight>(null);
   const blaze = useRef(1);
+  const fire = useRef(0);
 
   const tree = TREE;
 
@@ -57,7 +68,7 @@ export default function Erdtree({
   const bark = useMemo(() => {
     const material = new MeshStandardMaterial({
       color: '#d8c9a8',
-      emissive: '#e8b455',
+      emissive: BARK_GOLD.clone(),
       emissiveIntensity: 1,
       roughness: 0.62,
       metalness: 0,
@@ -116,7 +127,7 @@ export default function Erdtree({
           uTime: { value: 0 },
           uOpacity: { value: 1 },
           uSize: { value: 185 * TREE_SCALE },
-          uColor: { value: new Color('#f7d79a') },
+          uColor: { value: LEAF_GOLD.clone() },
         },
         vertexShader: /* glsl */ `
           attribute float aPhase;
@@ -187,18 +198,29 @@ export default function Erdtree({
     const l = light.current;
     if (!l) return;
 
-    // La Fractura le baja la luz al Árbol y no se la devuelve.
-    const target = mapRange(scrollState.position, 1.1, 3.4, 1, 0.28);
-    blaze.current = damp(blaze.current, target, 2.2, delta);
+    // El Árbol aguanta encendido toda la crónica: lo que se rompió en la
+    // Fractura fue el Anillo, no él. Lo que lo apaga es la Llama de la
+    // Ruina, ocho capítulos después, y de ahí no vuelve.
+    const pos = scrollState.position;
+    blaze.current = damp(blaze.current, blazeAt(pos), 2.2, delta);
+    fire.current = damp(fire.current, burnAt(pos), 1.8, delta);
 
     const shader = bark.userData.shader;
     if (shader) shader.uniforms.uBlaze.value = blaze.current;
+
+    // El oro se vuelve brasa. Es el mismo material y la misma emisión: lo
+    // único que cambia es el color, que es lo que cambia cuando algo arde.
+    bark.emissive.lerpColors(BARK_GOLD, BARK_EMBER, fire.current);
+    foliage.uniforms.uColor.value.lerpColors(LEAF_GOLD, LEAF_EMBER, fire.current);
 
     foliage.uniforms.uOpacity.value = blaze.current;
     foliage.uniforms.uTime.value = reduced ? 0 : state.clock.elapsedTime;
     l.intensity = 6 + blaze.current * 90;
     // Cuando el Árbol se apaga, el mundo entero se queda sin su luz.
-    if (sun.current) sun.current.intensity = 0.35 + blaze.current * 2.3;
+    if (sun.current) {
+      sun.current.intensity = 0.35 + blaze.current * 2.3;
+      sun.current.color.lerpColors(SUN_GOLD, SUN_EMBER, fire.current);
+    }
 
     if (!reduced && leaves.current) {
       // La copa entera respira, muy lento. Un árbol no se queda quieto.

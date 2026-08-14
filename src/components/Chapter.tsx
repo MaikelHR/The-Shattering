@@ -11,6 +11,8 @@ interface ChapterProps {
   /** Si falta, la sección es un respiro: ocupa scroll y no muestra nada. */
   chapter?: ChapterData;
   index: number;
+  /** De qué lado va el bloque de texto. Lo decide `ALIGN` en story.ts. */
+  align?: 'left' | 'right';
   reduced: boolean;
 }
 
@@ -31,7 +33,7 @@ interface ChapterProps {
  * cada capítulo parte los títulos de toda la página, se pisan entre sí y
  * terminan todos invisibles. Por eso le pasamos el elemento por ref.
  */
-export default function Chapter({ chapter, index, reduced }: ChapterProps) {
+export default function Chapter({ chapter, index, align = 'left', reduced }: ChapterProps) {
   const root = useRef<HTMLElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
 
@@ -94,9 +96,10 @@ export default function Chapter({ chapter, index, reduced }: ChapterProps) {
       className="chapter"
       ref={root}
       data-chapter={index}
-      // La alternancia izquierda/derecha se declara acá y no con
-      // :nth-child(even), que contaba también el <header> del hero.
-      data-align={index % 4 === 0 ? 'left' : 'right'}
+      // La alternancia izquierda/derecha viene decidida de story.ts y no de
+      // :nth-child(even), que contaba también el <header> del hero y las
+      // secciones de respiro.
+      data-align={align}
     >
       <div className="chapter__inner">
         <p className="chapter__label">

@@ -1,7 +1,8 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Group } from 'three';
-import { scrollState, mapRange, damp } from '../scrollState';
+import { scrollState, damp } from '../scrollState';
+import { ringSplit } from './mood';
 
 /** Tres arcos de 110° que juntos cierran un anillo. */
 const ARC = (Math.PI * 2) / 3 - 0.18;
@@ -23,8 +24,7 @@ export default function BrokenRing({ reduced }: { reduced: boolean }) {
   const split = useRef(0);
 
   useFrame((_, delta) => {
-    const target = mapRange(scrollState.position, 1.0, 3.6, 0, 1);
-    split.current = damp(split.current, target, 2, delta);
+    split.current = damp(split.current, ringSplit(scrollState.position), 2, delta);
 
     for (let i = 0; i < SEGMENTS.length; i++) {
       const g = segments.current[i];
@@ -48,11 +48,14 @@ export default function BrokenRing({ reduced }: { reduced: boolean }) {
           }}
         >
           <mesh rotation={[0, 0, start]}>
-            <torusGeometry args={[8.4, 0.14, 6, 48, ARC]} />
+            {/* El tubo va grueso a propósito. A doscientos cincuenta unidades
+                un radio de 0.14 sale en menos de un píxel y el Anillo se
+                pierde justo en el capítulo que cuenta que se rompe. */}
+            <torusGeometry args={[8.4, 0.26, 6, 48, ARC]} />
             <meshStandardMaterial
               color="#e8c37a"
               emissive="#e8c37a"
-              emissiveIntensity={0.9}
+              emissiveIntensity={1.7}
               toneMapped={false}
             />
           </mesh>

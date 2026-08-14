@@ -4,9 +4,11 @@ Un **scrollytelling** de fantasía: la historia se cuenta con el scroll mientras
 mundo 3D generado en tiempo real se recorre detrás del texto. No hay video ni
 imágenes pre-renderizadas — la cámara se mueve de verdad por la escena.
 
-Cuenta la caída de la Orden Áurea de Elden Ring en cinco capítulos: el Árbol
-entero, la Fractura del Anillo, lo que quedó de los Semidioses, las raíces que
-siguen encendidas bajo la capital, y el Sinluz que llega después.
+Cuenta la caída de la Orden Áurea de Elden Ring en nueve capítulos: el Árbol
+entero, la Fractura del Anillo, lo que quedó de los Semidioses, Caelid podrida,
+las raíces encendidas bajo la capital, la ciudad que lleva mil años cayéndose,
+el otro árbol que no llegó a florecer, la llama que hay que prender, y el Sinluz
+que llega después.
 
 **Stack:** React 19 · TypeScript · Vite · Three.js (React Three Fiber) · GSAP ScrollTrigger + SplitText
 
@@ -64,9 +66,9 @@ React se usa solo para lo que cambia poco: el capítulo activo del riel lateral.
 
 ### El dato que importa no es el progreso, es el capítulo
 
-Lo intuitivo sería mapear el progreso total (0 a 1) a los cinco encuadres. No
-funciona: el hero y el cierre también ocupan scroll, así que la cámara siempre va
-corrida y nunca llega al encuadre del capítulo que estás leyendo.
+Lo intuitivo sería mapear el progreso total (0 a 1) a los encuadres. No funciona:
+el hero y el cierre también ocupan scroll, así que la cámara siempre va corrida y
+nunca llega al encuadre del capítulo que estás leyendo.
 
 Por eso `scrollState.position` no sale de una regla de tres sino de la posición
 real de cada sección: App mide a qué altura queda centrada cada una y
@@ -74,8 +76,9 @@ real de cada sección: App mide a qué altura queda centrada cada una y
 medio de la pantalla, la cámara está exactamente en el encuadre del IV.
 
 Y como todo el mundo 3D lee ese mismo número, los umbrales se leen como lo que
-son: el Árbol se apaga *entre el capítulo I y el II*, el núcleo se enciende
-*llegando al IV*.
+son: el Anillo se parte *en el capítulo II*, el este se pudre *llegando al IV*,
+el Árbol arde *en el VIII*. Están todos juntos en `world/mood.ts`, porque son
+números de estación y una estación nueva en el medio los corre todos.
 
 ## Estructura
 
@@ -90,6 +93,8 @@ src/
 │   └── ChapterRail.tsx   # riel de capítulos (elemento de firma)
 └── world/
     ├── World.tsx         # canvas fijo, luces, niebla, calidad
+    ├── mood.ts           # QUÉ le pasa al mundo y CUÁNDO, en un solo sitio
+    ├── Atmosphere.tsx    # niebla, luz de relleno y color de los rayos
     ├── Sky.tsx           # el domo de cielo, con el halo del Árbol
     ├── Post.tsx          # la cadena de postprocesado
     ├── quality.ts        # los tres niveles y el ajuste automático
@@ -97,26 +102,50 @@ src/
     ├── Grass.tsx         # el pasto instanciado, con viento en el shader
     ├── Rocks.tsx         # las pedreras
     ├── Erdtree.tsx       # el Árbol Áureo: ramas, hojas, luz y sombra
+    ├── Haligtree.tsx     # el Árbol Sagrado, del mismo generador
+    ├── Ruins.tsx         # lo que queda de la capital
+    ├── Azula.tsx         # la ciudad que lleva mil años cayéndose
     ├── BrokenRing.tsx    # el Anillo, que la Fractura parte en tres
     ├── Core.tsx          # la luz encendida en la pared del acantilado
     ├── CameraRig.tsx     # la cámara interpolada por el scroll
-    ├── erdtree/branches.ts    # el Árbol, generado por recursión
+    ├── erdtree/branches.ts    # los árboles, generados por recursión
+    ├── ruins/
+    │   ├── pieces.ts          # la cantería: columna, sillar, dintel
+    │   └── layout.ts          # dónde estuvo cada edificio
     └── terrain/
         ├── noise.ts           # ruido de gradiente y sus octavas
         └── heightfield.ts     # el relieve y la consulta de altura
 ```
 
 **Para reescribir la historia o cambiar el recorrido, editá solo `src/story.ts`.**
+(Y si movés estaciones, `world/mood.ts`, que las cuenta por número.)
 
 El recorrido está hecho de **estaciones**: puntos donde la cámara se detiene, con
 el viaje interpolado entre una y la siguiente. Y una estación no tiene por qué
 llevar texto. Las que no lo llevan son **respiros**: el lector sigue bajando, el
-mundo se mueve y no hay nada que leer.
+mundo se mueve y no hay nada que leer. Hay nueve de cada.
 
 Sirven para dos cosas a la vez. Dejan respirar la lectura, y le dan a la cámara
-puntos intermedios por donde pasar: con cinco puntos sueltos, el viaje entre uno y
+puntos intermedios por donde pasar: con capítulos sueltos, el viaje entre uno y
 otro es una recta larga que atraviesa el mundo sin que nadie la conduzca. Añadir
 un respiro es añadir un nodo a esa curva.
+
+### El orden de los capítulos también lo decide la cámara
+
+Esto no es obvio y vale la pena. La historia empieza y termina mirando al Árbol,
+al norte. Cualquier capítulo que mire a otro lado hay que pagarlo dos veces, a la
+ida y a la vuelta, y dos vueltas de ciento ochenta grados se sienten como un
+latigazo por mucho que se repartan.
+
+Ordenados por pura cronología, el recorrido zigzagueaba: este, noroeste, este,
+suroeste. Reordenados —Caelid al este, las raíces abajo, Farum Azula al sur, el
+Árbol Sagrado al suroeste— la cámara da **una sola vuelta entera** y vuelve al
+norte por el otro lado. Trescientos sesenta grados repartidos en dieciocho
+estaciones son sesenta por tramo; el zigzag pedía ciento ochenta dos veces.
+
+Y el orden nuevo también cuenta mejor: el este arrasado, la luz que sigue abajo,
+la ciudad que recuerda que hubo otras órdenes, el intento que se congeló, y solo
+entonces la decisión de quemarlo todo.
 
 ## Detalles que vale la pena mirar en el código
 
@@ -155,6 +184,23 @@ un respiro es añadir un nodo a esa curva.
   que haya planos intermedios entre el ojo y él (ruinas, llanura, montañas), y que
   la bruma lo lave como lava todo lo lejano. Con eso, unas columnas de seis
   unidades en primer plano dicen sin decir nada que el Árbol mide ciento treinta.
+- **El mundo cambia de color con la niebla y las luces, no con un filtro.** Cuando
+  el este se pudre y cuando el Árbol arde, lo tentador es una vuelta de tono en el
+  postprocesado. Se ve mal, y por una razón concreta: un filtro tiñe por igual lo
+  cercano y lo lejano, y lo que hace creíble un cambio de luz es justamente que no.
+  Acá el rojo entra por donde entraría de verdad —la distancia se llena de él, la
+  luz rebotada lo trae, los haces que bajan del Árbol lo llevan— y lo cercano llega
+  el último.
+- **Las crestas de la cordillera se muestrean a distinta frecuencia en cada eje.**
+  Con la misma en las dos, el ruido da un campo de conos iguales y el horizonte se
+  lee como el mismo triángulo repetido. Estirado, salen líneas de cumbres, que es
+  la forma que tiene una cordillera de verdad porque la hace un plegamiento y un
+  plegamiento tiene dirección. Y la amplitud de las crestas lleva su propio ruido,
+  mucho más lento, para que no todas las cumbres salgan a la misma altura.
+- **Los dos árboles salen del mismo generador.** El Áureo se abre en abanico y es
+  de oro; el Sagrado sube estrecho y se queda a media altura. Lo único que cambia
+  son los parámetros: apertura, empuje hacia arriba y cuántas generaciones de
+  tronco pasan antes de que la copa empiece.
 - **El terreno es un abanico de anillos, no una cuadrícula.** Los radios crecen al
   cuadrado, así que casi todos los vértices caen donde está la cámara y el
   horizonte se lleva cuatro. Cubrir 290 unidades con una cuadrícula uniforme y el
@@ -163,9 +209,9 @@ un respiro es añadir un nodo a esa curva.
   el límite del mundo y el suelo se lee como una isla de juguete.
 - `prefers-reduced-motion` se respeta con una regla simple: **el mundo solo se mueve
   cuando el usuario scrollea**. Se apaga el movimiento autónomo (el Árbol, el
-  Anillo, el viento en la hierba, el latido de las raíces, el titileo de las
-  estrellas, el grano de película, la inercia de la cámara, el parallax y los
-  revelados de texto) y se deja lo que responde al scroll. Comprobado comparando
+  Anillo, el viento en la hierba, el latido de las raíces, el giro de la ciudad,
+  el titileo de las estrellas, el grano de película, la inercia de la cámara, el
+  parallax y los revelados de texto) y se deja lo que responde al scroll. Comprobado comparando
   dos capturas separadas en el tiempo: salen idénticas byte a byte, salvo por el
   ruido del denoiser de la oclusión ambiental, que cambia de un frame a otro por
   debajo del umbral de lo perceptible.

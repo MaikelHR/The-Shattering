@@ -90,11 +90,27 @@ export function makeHeightFunction(params: TerrainParams = DEFAULT_TERRAIN) {
 
     // La cordillera, que empieza pasada la llanura y crece hacia el horizonte.
     const ridgeMask = smoothstep(mountainStart, mountainStart + 130, r);
-    // Dos capas: la masa general y las crestas. Sin las crestas, una
-    // cordillera se lee como un mar de dunas.
+    // Tres capas: la masa general, las crestas grandes y unas menores encima.
+    // Sin las crestas, una cordillera se lee como un mar de dunas.
+    //
+    // Y las crestas llevan su propia amplitud, de frecuencia mucho más baja
+    // que ellas. Esto es lo que separa una cordillera de una sierra de
+    // juguete: con amplitud constante todas las cumbres salen a la misma
+    // altura y el horizonte se lee como el mismo triángulo repetido. Con la
+    // máscara hay tramos que se levantan y tramos que se quedan bajos, que
+    // es lo que hace una cordillera de verdad.
+    const crests =
+      0.35 + (fbm(mountainNoise, x * 0.0031 - 55, z * 0.0031 + 21, 2) * 0.5 + 0.5) * 1.05;
+    // El ruido de crestas se muestrea a distinta frecuencia en cada eje, y
+    // eso las estira: en vez de un campo de conos sueltos salen líneas de
+    // cumbres, que es la forma que tiene una cordillera de verdad porque la
+    // hace un plegamiento y un plegamiento tiene dirección. Con la misma
+    // frecuencia en los dos ejes el horizonte se lee como una fila de
+    // triángulos calcados.
     const range =
       (fbm(mountainNoise, x * 0.0075, z * 0.0075, 4) * 0.5 + 0.5) * 0.5 +
-      Math.pow(ridged(mountainNoise, x * 0.018 + 9, z * 0.018 - 3, 4), 1.7) * 0.85;
+      Math.pow(ridged(mountainNoise, x * 0.022 + 9, z * 0.011 - 3, 4), 1.35) * 0.8 * crests +
+      Math.pow(ridged(ridgeNoise, x * 0.046 - 17, z * 0.023 + 6, 3), 1.8) * 0.18;
     const mountains = ridgeMask * range * mountainHeight;
 
     // Un rellano donde se planta lo que importa, para que las ruinas y la

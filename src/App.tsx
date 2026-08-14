@@ -6,7 +6,7 @@ import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import World from './world/World';
 import Chapter from './components/Chapter';
 import ChapterRail from './components/ChapterRail';
-import { BEATS, CHAPTERS } from './story';
+import { ALIGN, BEATS, CHAPTERS } from './story';
 import { setChapterAnchors, writeScroll } from './scrollState';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, useGSAP);
@@ -171,7 +171,13 @@ export default function App() {
             y no muestran nada: son el respiro entre dos textos, y de paso el
             tramo donde la cámara hace su viaje sin que nadie lea. */}
         {BEATS.map((beat, i) => (
-          <Chapter key={i} chapter={beat.chapter} index={i} reduced={reduced} />
+          <Chapter
+            key={i}
+            chapter={beat.chapter}
+            index={i}
+            align={ALIGN.get(i)}
+            reduced={reduced}
+          />
         ))}
 
         <footer className="colophon">

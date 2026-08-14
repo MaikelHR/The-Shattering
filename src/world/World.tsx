@@ -8,10 +8,13 @@ import Grass from './Grass';
 import Rocks from './Rocks';
 import Ruins from './Ruins';
 import Erdtree from './Erdtree';
+import Haligtree from './Haligtree';
+import Azula from './Azula';
 import BrokenRing from './BrokenRing';
 import Core from './Core';
 import CameraRig from './CameraRig';
 import Sky from './Sky';
+import Atmosphere from './Atmosphere';
 import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
 import Post from './Post';
 import { QUALITY, detectQuality, downgrade, isForced } from './quality';
@@ -72,7 +75,9 @@ export default function World({ reduced }: { reduced: boolean }) {
           <Lightformer form="rect" intensity={0.25} color="#3a2c16" scale={40} position={[0, -18, 0]} rotation={[-Math.PI / 2, 0, 0]} />
         </Environment>
 
-        <ambientLight intensity={0.12} />
+        {/* La niebla, la luz de relleno y el color de los rayos: lo que tiñe
+            todo lo demás cuando el este se pudre y cuando el Árbol arde. */}
+        <Atmosphere sun={sun} />
 
         <Suspense fallback={null}>
           <Terrain />
@@ -81,6 +86,11 @@ export default function World({ reduced }: { reduced: boolean }) {
         </Suspense>
         <Grass reduced={reduced} density={q.particles} />
         <Erdtree reduced={reduced} shadowMap={q.shadowMap} />
+        {/* El otro árbol, el que no llegó a florecer, y la ciudad que lleva
+            mil años cayéndose. Los dos viven lejos y a contraluz: son
+            silueta, y con eso alcanza. */}
+        <Haligtree />
+        <Azula reduced={reduced} density={q.particles} />
         <BrokenRing reduced={reduced} />
         <Core reduced={reduced} />
 

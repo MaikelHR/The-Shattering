@@ -1,15 +1,16 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Mesh, MeshStandardMaterial, PointLight } from 'three';
-import { scrollState, mapRange, damp } from '../scrollState';
+import { scrollState, damp } from '../scrollState';
+import { roots } from './mood';
 
 /**
  * LAS RAÍCES, BAJO LA CAPITAL
  * ------------------------------------------------------------
  * La luz que sigue encendida en la pared del acantilado, donde ya no
  * llega la Gracia. Late siempre, pero se enciende de verdad en el
- * capítulo IV, justo después de que el Árbol se apague arriba: es
- * la misma luz, que se fue para abajo.
+ * capítulo VI. Y se queda encendida: dos capítulos después el Árbol
+ * arde arriba y esta pasa a ser la única luz dorada que queda entera.
  *
  * Con movimiento reducido el latido y el giro se detienen; lo que no
  * se toca es la respuesta al scroll, porque esa la pide el usuario.
@@ -29,8 +30,8 @@ export default function Core({ reduced }: { reduced: boolean }) {
     const t = state.clock.elapsedTime;
     // Latido base, siempre presente.
     const beat = reduced ? 0.5 : 0.5 + Math.sin(t * 1.6) * 0.18 + Math.sin(t * 3.1) * 0.06;
-    // Cerca del capítulo IV el núcleo se revela.
-    const reveal = mapRange(scrollState.position, 4.6, 6.3, 0, 1);
+    // Llegando al capítulo VI el núcleo se revela.
+    const reveal = roots(scrollState.position);
     const target = beat * (0.7 + reveal * 3.2);
 
     intensity.current = damp(intensity.current, target, 4, delta);

@@ -1,15 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useTexture } from '@react-three/drei';
-import {
-  BoxGeometry,
-  CylinderGeometry,
-  MeshStandardMaterial,
-  RepeatWrapping,
-  SRGBColorSpace,
-  Vector3,
-} from 'three';
+import { MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
 import type { BufferGeometry, InstancedMesh, Matrix4 } from 'three';
-import { makeNoise } from './terrain/noise';
+import { PIECES } from './ruins/pieces';
 import { RUINS } from './ruins/layout';
 
 /**
@@ -20,86 +13,14 @@ import { RUINS } from './ruins/layout';
  * hizo alguien, y esa es justamente la lectura que aporta. Sin
  * ruinas, el paisaje es campo; con ruinas, es un imperio caído.
  *
- * Lo que las hace creíbles no es la forma sino el desgaste. Cada
- * pieza lleva los bordes comidos por ruido y las columnas rotas
- * terminan en un filo irregular, nunca en un corte limpio.
+ * Las piezas están talladas en `ruins/pieces.ts` y la disposición
+ * en `ruins/layout.ts`. Acá solo se les pone la piedra encima y se
+ * vuelcan en cuatro llamadas de dibujo, una por tipo.
  *
  * La piedra tallada va más clara que la roca del terreno: es otro
  * material, traído de otra parte, y el contraste ayuda a leerlas
  * a contraluz.
  */
-
-/** Erosiona una geometría empujando sus vértices con ruido. */
-function weather(geometry: BufferGeometry, seed: number, amount: number): BufferGeometry {
-  const noise = makeNoise(seed);
-  const position = geometry.attributes.position;
-  const v = new Vector3();
-
-  for (let i = 0; i < position.count; i++) {
-    v.fromBufferAttribute(position, i);
-    const n =
-      noise(v.x * 2.4 + v.y * 1.3, v.z * 2.4 - v.y * 0.7) * 0.7 +
-      noise(v.x * 7.1 - 3, v.z * 7.1 + 5) * 0.3;
-    v.x += n * amount;
-    v.z += n * amount;
-    v.y += n * amount * 0.4;
-    position.setXYZ(i, v.x, v.y, v.z);
-  }
-
-  position.needsUpdate = true;
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-const smoothstep = (a: number, b: number, x: number) => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-};
-
-/**
- * Una columna, con su basa y su capitel.
- *
- * Sin esos dos ensanchamientos un cilindro se lee como poste, y a
- * contraluz —que es como se ven casi siempre acá— la silueta es lo único
- * que llega. Si está rota, el remate queda dentado: es una fractura, no
- * un corte de sierra.
- */
-function columnGeometry(seed: number, broken: boolean): BufferGeometry {
-  const geometry = new CylinderGeometry(0.42, 0.46, 1, 10, 14);
-  const noise = makeNoise(seed);
-  const position = geometry.attributes.position;
-  const v = new Vector3();
-
-  for (let i = 0; i < position.count; i++) {
-    v.fromBufferAttribute(position, i);
-    const t = v.y + 0.5; // 0 abajo, 1 arriba
-
-    let r = 1 + 0.44 * (1 - smoothstep(0, 0.075, t));
-    if (!broken) r += 0.34 * smoothstep(0.87, 0.96, t);
-    v.x *= r;
-    v.z *= r;
-
-    if (broken && t > 0.9) {
-      const bite = noise(v.x * 6, v.z * 6) * 0.5 + 0.5;
-      v.y -= bite * 0.26;
-      v.x *= 1 + bite * 0.1;
-      v.z *= 1 + bite * 0.1;
-    }
-    position.setXYZ(i, v.x, v.y, v.z);
-  }
-
-  position.needsUpdate = true;
-  geometry.computeVertexNormals();
-  return weather(geometry, seed + 17, 0.03);
-}
-
-function blockGeometry(seed: number): BufferGeometry {
-  return weather(new BoxGeometry(1, 1, 1, 4, 4, 4), seed, 0.11);
-}
-
-function lintelGeometry(seed: number): BufferGeometry {
-  return weather(new BoxGeometry(1, 1, 1, 8, 3, 3), seed, 0.06);
-}
 
 function Pieces({
   geometry,
@@ -148,16 +69,6 @@ export default function Ruins({ density }: { density: number }) {
     '/textures/dark_rock_nor.webp',
   ]);
 
-  const geometries = useMemo(
-    () => ({
-      column: columnGeometry(311, false),
-      brokenColumn: columnGeometry(733, true),
-      block: blockGeometry(1201),
-      lintel: lintelGeometry(1607),
-    }),
-    [],
-  );
-
   const material = useMemo(() => {
     for (const map of [rockMap, rockNormal]) {
       map.wrapS = RepeatWrapping;
@@ -173,24 +84,21 @@ export default function Ruins({ density }: { density: number }) {
     });
   }, [rockMap, rockNormal]);
 
-  useEffect(() => {
-    return () => {
-      material.dispose();
-      Object.values(geometries).forEach((g) => g.dispose());
-    };
-  }, [material, geometries]);
+  // Las geometrías no se liberan acá: viven en el módulo y las comparte
+  // también la ciudad del cielo. El material sí es nuestro.
+  useEffect(() => () => material.dispose(), [material]);
 
   return (
     <group>
-      <Pieces geometry={geometries.column} material={material} matrices={RUINS.columns} density={density} />
+      <Pieces geometry={PIECES.column} material={material} matrices={RUINS.columns} density={density} />
       <Pieces
-        geometry={geometries.brokenColumn}
+        geometry={PIECES.brokenColumn}
         material={material}
         matrices={RUINS.brokenColumns}
         density={density}
       />
-      <Pieces geometry={geometries.block} material={material} matrices={RUINS.blocks} density={density} />
-      <Pieces geometry={geometries.lintel} material={material} matrices={RUINS.lintels} density={density} />
+      <Pieces geometry={PIECES.block} material={material} matrices={RUINS.blocks} density={density} />
+      <Pieces geometry={PIECES.lintel} material={material} matrices={RUINS.lintels} density={density} />
     </group>
   );
 }
