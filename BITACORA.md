@@ -411,3 +411,46 @@ grieta no se crea, así que los trazos se habrían quedado **dibujados y quietos
 en mitad de la pantalla para siempre. Ahora, con movimiento reducido, la grieta
 y el destello ni se pintan; el golpe del mundo sí sigue, porque lo mueve el dedo
 del lector y no un reloj.
+
+### 0.9 · Las raíces y el otro árbol — 14 de agosto
+
+Dos sitios que se veían mal, y los dos por un motivo que se podía medir.
+
+**El capítulo de las raíces era un icosaedro con una luz dentro**, y se leía como
+lo que era: una piedra que brilla. Ahora hay raíces, y salen del mismo generador
+que los dos árboles: una raíz **es** un árbol que crece hacia abajo. Tercera vez
+que se usa el generador, y la que mejor lo justifica.
+
+Costó tres intentos, y los dos primeros fallaron por lo mismo:
+
+1. Con los números de siempre —muchas generaciones, mucha bifurcación— salieron
+   **matas**: bolas de ramitas que dentro de una grieta de quince unidades de
+   ancho tapaban el hueco entero y se leían como coral.
+2. Encima estaban a veinticinco unidades del ojo y a escala 1,5. Una masa de
+   veinte unidades ahí ocupa medio encuadre.
+
+Lo que funcionó fue **invertir la forma**: siete de las ocho generaciones en
+régimen de tronco, así que en vez de copa sale un cable de dieciocho unidades que
+cruza la grieta de pared a pared soltando raicillas. Cuarenta y cinco ramas en
+vez de novecientas, así que caben ocho a distintas alturas y profundidades — y lo
+que hace que se lea el hondo no son las raíces sino que se crucen unas por
+delante de otras.
+
+Dos detalles más. Los anclajes se calculan con la propia función de altura del
+terreno (`groundHeight(x, z) - 1.6`) en vez de escribirlos a mano, así que la
+base queda enterrada aunque cambie el relieve: al aire se veía el tocón flotando.
+Y la orientación va por **cuaternión desde una dirección** y no por ángulos de
+Euler, porque lo que uno quiere decir es «crece hacia allá», no «gira π en X y
+0,4 en Z».
+
+**El Árbol Sagrado parecía un brócoli**, y la causa era medible: tenía el **42%
+de su altura en tronco pelado** contra el 16% del Áureo, porque llevaba cinco
+generaciones de tronco antes de abrirse. Bajando a tres, el tronco pelado cae al
+21% y la copa ocupa el resto. La otra mitad del problema eran las hojas: dos mil
+motas de metro y medio en una copa de cincuenta se solapan hasta formar bolas.
+Reducidas a un tercio y más translúcidas, la silueta la lleva el ramaje, que es
+lo que hay que ver.
+
+La lección que sirve para la próxima: **cuando algo «se ve raro», casi siempre
+hay una proporción que lo dice.** Medir el tronco pelado contra el que sí se ve
+bien fue más rápido y más seguro que probar valores a ojo.

@@ -106,7 +106,7 @@ src/
     ├── Ruins.tsx         # lo que queda de la capital
     ├── Azula.tsx         # la ciudad que lleva mil años cayéndose
     ├── BrokenRing.tsx    # el Anillo, que la Fractura parte en tres
-    ├── Core.tsx          # la luz encendida en la pared del acantilado
+    ├── Roots.tsx         # las raíces encendidas, cruzando el barranco
     ├── CameraRig.tsx     # la cámara interpolada por el scroll
     ├── erdtree/branches.ts    # los árboles, generados por recursión
     ├── ruins/
@@ -197,10 +197,11 @@ entonces la decisión de quemarlo todo.
   la forma que tiene una cordillera de verdad porque la hace un plegamiento y un
   plegamiento tiene dirección. Y la amplitud de las crestas lleva su propio ruido,
   mucho más lento, para que no todas las cumbres salgan a la misma altura.
-- **Los dos árboles salen del mismo generador.** El Áureo se abre en abanico y es
-  de oro; el Sagrado sube estrecho y se queda a media altura. Lo único que cambia
-  son los parámetros: apertura, empuje hacia arriba y cuántas generaciones de
-  tronco pasan antes de que la copa empiece.
+- **Los dos árboles y las raíces salen del mismo generador.** El Áureo se abre en
+  abanico y es de oro; el Sagrado es pálido y no llega a la mitad de alto; y las
+  raíces del barranco son el mismo código con siete de sus ocho generaciones en
+  régimen de tronco, así que en vez de copa sale un cable largo que cruza la
+  grieta. Lo único que cambia son los parámetros.
 - **El terreno es un abanico de anillos, no una cuadrícula.** Los radios crecen al
   cuadrado, así que casi todos los vértices caen donde está la cámara y el
   horizonte se lleva cuatro. Cubrir 290 unidades con una cuadrícula uniforme y el

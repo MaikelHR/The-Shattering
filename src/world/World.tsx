@@ -11,7 +11,7 @@ import Erdtree from './Erdtree';
 import Haligtree from './Haligtree';
 import Azula from './Azula';
 import BrokenRing from './BrokenRing';
-import Core from './Core';
+import Roots from './Roots';
 import CameraRig from './CameraRig';
 import Sky from './Sky';
 import Atmosphere from './Atmosphere';
@@ -114,7 +114,7 @@ export default function World({ reduced, onReady }: { reduced: boolean; onReady:
         <Haligtree />
         <Azula reduced={reduced} density={q.particles} />
         <BrokenRing reduced={reduced} />
-        <Core reduced={reduced} />
+        <Roots reduced={reduced} />
 
         {/* El emisor de los rayos: vive dentro de la copa, y son las ramas
             y las ruinas al pasar por delante las que recortan los haces. */}
