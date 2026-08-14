@@ -7,6 +7,7 @@ import Chapter from './components/Chapter';
 import ChapterRail from './components/ChapterRail';
 import Preloader, { PRELOADER_TIMEOUT } from './components/Preloader';
 import Fracture from './components/Fracture';
+import Ambience from './components/Ambience';
 import { ALIGN, BEATS, CHAPTERS } from './story';
 import { setChapterAnchors, writeScroll } from './scrollState';
 
@@ -255,6 +256,10 @@ export default function App() {
       <Fracture armed={armed} reduced={reduced} />
 
       <ChapterRail active={active} onSelect={goToChapter} />
+
+      {/* Arranca apagado siempre: una página que suena sola es una grosería,
+          y además el navegador no lo permitiría. */}
+      <Ambience reduced={reduced} />
 
       {/* El scroll suavizado envuelve SOLO el texto. Todo lo fijo —el canvas,
           el riel, la barra de progreso y la entrada— vive fuera a propósito:

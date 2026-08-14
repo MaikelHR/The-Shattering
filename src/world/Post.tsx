@@ -90,10 +90,14 @@ export default function Post({
         <GodRays
           sun={sun}
           samples={q.godRaySamples}
-          density={0.86}
-          decay={0.90}
-          weight={0.20}
-          exposure={0.20}
+          // Subidos respecto de los primeros valores, que eran de cuando el
+          // Árbol era cinco bultos y no había nada que recortara los haces.
+          // Con cinco mil ramas finas, la rejilla existe y el efecto puede
+          // pesar de verdad sin lavar la pantalla.
+          density={0.94}
+          decay={0.93}
+          weight={0.38}
+          exposure={0.34}
           clampMax={1}
           blur
           kernelSize={KernelSize.SMALL}

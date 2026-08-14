@@ -46,7 +46,7 @@ cinco, la escena deja de leerse como maqueta aunque no sea fotorrealista.
 | La entrada: runa, destello y carga diferida | ✅ |
 | La Fractura, clavada en pantalla | ✅ |
 | El mundo alrededor: la capital, el cielo | ✅ |
-| Atmósfera viva: hojas, ceniza, sonido | ⏳ |
+| Atmósfera viva: hojas, ceniza, sonido | ✅ |
 | GSAP a fondo: la entrada, la Fractura, el texto | ⏳ |
 | Interacción y publicación | ⏳ |
 
@@ -56,7 +56,7 @@ medias:
 | | |
 |---|---|
 | La runa dibujándose en la entrada y el destello que abre el mundo | ✅ |
-| El Árbol con los rayos entre las ramas y las hojas cayendo | ½ (los rayos existen pero flojos; no hay hojas) |
+| El Árbol con los rayos entre las ramas y las hojas cayendo | ✅ |
 | La Fractura pinneada: la grieta, el golpe, el color que se va | ✅ |
 | El descenso a las raíces, con la luz encendida abajo | ✅ |
 | El mapa que se dibuja solo al final, y la cámara que te sueltan | ⏳ |
@@ -155,21 +155,20 @@ Lo que la fase C venía a tapar, hecho con geometría.
 
 ### 4 · Atmósfera viva
 
-- [ ] **Hojas doradas en tres tamaños.** Instanciadas con `Billboard`, con caída
-      y deriva senoidal, en tres grupos por profundidad. Las del primer plano
-      grandes y desenfocadas por el DOF: eso es lo que se ve en las capturas.
-- [ ] **Los respiros, coreografiados.** Hay nueve estaciones sin texto que hoy
-      solo viajan. Son el sitio natural para lo que no cabe en un capítulo: la
-      ceniza cayendo después de Caelid, las motas que suben saliendo del
-      barranco, la grieta. Ninguno de los dos planes viejos las contemplaba
-      porque son más nuevas que ellos.
-- [ ] **Los rayos, en serio.** Ahora que hay ramas finas de verdad, meter el
-      emisor dentro de la copa y subir el peso del efecto. Es la mitad que falta
-      del segundo momento.
-- [ ] **Sonido.** Viento en bucle (~150 KB en opus), el latido de las raíces que
-      sube en el capítulo V, y un golpe grave en la Fractura. Web Audio con un
-      `GainNode` maestro, botón de silencio persistido en `localStorage`, y
-      arranque solo tras la primera interacción.
+- [x] **Hojas doradas en tres tamaños**, en `Leaves.tsx`. Envuelven a la cámara
+      con un `mod` en el shader, así que el campo es infinito costando
+      novecientas hojas y cada una se queda donde está mientras la cámara pasa.
+- [x] **Los respiros, coreografiados.** El aire cambia con la historia: ceniza
+      saliendo de Caelid, y en el barranco las motas **suben**, que es la única
+      vez en toda la crónica que algo va hacia arriba. Lo deciden dos funciones
+      nuevas de `mood.ts`, como todo lo demás.
+- [x] **Los rayos, en serio.** Emisor más gordo y el efecto con más peso: los
+      valores de antes eran de cuando el Árbol era cinco bultos y no había nada
+      que recortara los haces.
+- [x] **Sonido**, y **sintetizado**: viento de ruido rosa filtrado, el zumbido
+      de las raíces en dos senos desafinados y un barrido grave en la Fractura.
+      Cero kilobytes contra los ciento cincuenta que costaría un bucle en opus.
+      Arranca apagado siempre.
 
 ### 5 · El texto y el remate
 
@@ -235,11 +234,11 @@ Vale tanto como la lista de arriba: son decisiones tomadas, no olvidos.
 
 | Concepto | Al empezar | Hoy | Objetivo |
 |---|---|---|---|
-| **JS que bloquea el primer pintado** (gzip) | 345 KB | **125 KB** | < 200 KB |
-| JS total (gzip) | 345 KB | 555 KB | — |
+| **JS que bloquea el primer pintado** (gzip) | 345 KB | **127 KB** | < 200 KB |
+| JS total (gzip) | 345 KB | 560 KB | — |
 | Primer pintado | — | 84 ms (local) | < 2,5 s en conexión buena |
 | Imágenes | 0 | 965 KB (dos texturas de roca) | < 1,5 MB |
-| Audio | 0 | 0 | < 250 KB |
+| Audio | 0 | **0** (sintetizado) | < 250 KB |
 | fps | — | 180 (Radeon RX 7600) | > 60 |
 | Alto de la página | — | 18,1 pantallas | — |
 

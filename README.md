@@ -90,7 +90,10 @@ src/
 ├── index.css            # paleta, tipografía, capas
 ├── components/
 │   ├── Chapter.tsx       # sección con revelados de SplitText
-│   └── ChapterRail.tsx   # riel de capítulos (elemento de firma)
+│   ├── ChapterRail.tsx   # riel de capítulos (elemento de firma)
+│   ├── Preloader.tsx     # la runa que se dibuja y el destello que abre
+│   ├── Fracture.tsx      # el pin, la grieta y el golpe del capítulo II
+│   └── Ambience.tsx      # el sonido, sintetizado y apagado por defecto
 └── world/
     ├── World.tsx         # canvas fijo, luces, niebla, calidad
     ├── mood.ts           # QUÉ le pasa al mundo y CUÁNDO, en un solo sitio
@@ -100,6 +103,7 @@ src/
     ├── quality.ts        # los tres niveles y el ajuste automático
     ├── Terrain.tsx       # el suelo, con roca y hierba triplanar
     ├── Grass.tsx         # el pasto instanciado, con viento en el shader
+    ├── Leaves.tsx        # lo que flota en el aire, envolviendo a la cámara
     ├── Rocks.tsx         # las pedreras
     ├── Erdtree.tsx       # el Árbol Áureo: ramas, hojas, luz y sombra
     ├── Haligtree.tsx     # el Árbol Sagrado, del mismo generador
@@ -189,6 +193,16 @@ entonces la decisión de quemarlo todo.
   medio nada. La capital ocupa ese hueco, y por eso está puesta — no por decorar.
   Con ella, unas columnas de seis unidades en primer plano dicen sin decir nada
   que el Árbol mide ciento veinte.
+- **Lo que flota en el aire envuelve a la cámara, no la sigue.** Si el campo de
+  hojas siguiera a la cámara sin más, viajarían con ella y no habría paralaje:
+  se leerían como suciedad en el objetivo. Cada hoja se envuelve alrededor de la
+  cámara con un `mod` en el shader, así que cuando una se sale por un lado de la
+  caja entra por el otro. El campo resulta infinito costando novecientas hojas, y
+  cada una se queda donde está mientras la cámara pasa.
+- **El sonido está sintetizado: no hay ni un archivo.** Viento de ruido rosa
+  filtrado, el zumbido de las raíces en dos senos desafinados entre sí, y un
+  barrido grave en la Fractura. Es la misma decisión que el resto del proyecto y
+  además pesa cero. Arranca apagado, siempre.
 - **El mundo cambia de color con la niebla y las luces, no con un filtro.** Cuando
   el este se pudre y cuando el Árbol arde, lo tentador es una vuelta de tono en el
   postprocesado. Se ve mal, y por una razón concreta: un filtro tiñe por igual lo

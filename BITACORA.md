@@ -488,3 +488,50 @@ sale del propio cielo aclarado, así que se tiñen solas con la podredumbre y co
 el incendio sin un uniform aparte.
 
 180 fps con todo puesto.
+
+### 0.11 · La atmósfera viva — 14 de agosto
+
+- [x] **Hojas doradas** (`Leaves.tsx`), en tres tamaños
+- [x] **El aire cambia con la historia**: ceniza saliendo de Caelid, y motas
+      que **suben** en el barranco
+- [x] **Los rayos**, con el emisor más gordo y el efecto con más peso
+- [x] **Sonido sintetizado**, con botón y apagado por defecto
+
+**Las hojas envuelven a la cámara, no la siguen.** Es la única parte con truco.
+Si el campo siguiera a la cámara sin más, las hojas viajarían con ella y no
+habría paralaje: se leerían como suciedad en el objetivo. Lo que hace el shader
+es envolver cada hoja alrededor de la cámara con un `mod`, así que cuando una se
+sale por un lado de la caja entra por el otro. El campo resulta infinito
+costando novecientas hojas, y cada hoja se queda donde está mientras la cámara
+pasa. El salto del envoltorio ocurre en el borde de la caja —lejos y con
+niebla—, así que no se ve.
+
+Y de paso los tres tamaños: las grandes van cerca y el desenfoque del
+postprocesado las disuelve, las pequeñas van lejos y nítidas. Con un tamaño
+solo se ve una cortina; con tres, un volumen de aire.
+
+**La trampa de la sesión: `half` es palabra reservada en GLSL.** Escribí
+`vec3 half = uBox * 0.5;` y el shader no compiló. Lo que se ve entonces no es un
+error de compilación con su mensaje, sino ciento noventa avisos de
+`useProgram: program not valid` y las hojas que sencillamente no están. Antes de
+buscar en la lógica, revisar los nombres de las variables del shader.
+
+**El sonido va sintetizado y es la decisión que más se parece al resto del
+proyecto.** El viento es ruido rosa por un pasa-banda con dos osciladores
+lentísimos y desincronizados moviéndole la frecuencia —con uno solo, el viento
+respira como un metrónomo—; el zumbido de las raíces son dos senos desafinados
+entre sí más un armónico bajo; y el golpe de la Fractura es un barrido de 110 a
+28 Hz con un soplo de ruido filtrado encima. Cero kilobytes contra los ciento
+cincuenta de un bucle en opus, y además se ajusta a la historia leyendo
+`mood.ts` en vez de repetirse igual.
+
+Arranca **apagado**, y no solo por el autoplay: una página que suena sola sin
+avisar es una grosería. La elección se recuerda, y ahí hay un detalle que casi
+se cuela: si alguien la dejó encendida y **recarga**, el componente crea el
+`AudioContext` sin que nadie haya tocado la página, el navegador lo deja
+suspendido —con razón— y el botón diría que está encendido sin que se oiga nada.
+Ahora, si nace suspendido, se queda esperando el primer gesto para despertarlo.
+
+**Lo que no puedo comprobar: cómo suena.** Puedo verificar que el grafo se
+construye, que el botón alterna, que la elección persiste y que no hay errores;
+oírlo, no. Los niveles van conservadores por eso.

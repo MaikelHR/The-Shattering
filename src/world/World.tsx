@@ -1,6 +1,6 @@
 import { Suspense, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, Lightformer, PerformanceMonitor, Sparkles, Stars } from '@react-three/drei';
+import { Environment, Lightformer, PerformanceMonitor, Stars } from '@react-three/drei';
 import { NoToneMapping } from 'three';
 import type { Mesh } from 'three';
 import Terrain from './Terrain';
@@ -13,6 +13,7 @@ import Haligtree from './Haligtree';
 import Azula from './Azula';
 import BrokenRing from './BrokenRing';
 import Roots from './Roots';
+import Leaves from './Leaves';
 import CameraRig from './CameraRig';
 import Sky from './Sky';
 import Atmosphere from './Atmosphere';
@@ -126,17 +127,21 @@ export default function World({ reduced, onReady }: { reduced: boolean; onReady:
         <BrokenRing reduced={reduced} />
         <Roots reduced={reduced} />
 
-        {/* El emisor de los rayos: vive dentro de la copa, y son las ramas
-            y las ruinas al pasar por delante las que recortan los haces. */}
+        {/* El emisor de los rayos. Vive dentro de la copa, y son las ramas y
+            las ruinas al pasar por delante las que recortan los haces: un
+            emisor descubierto lava la pantalla y uno tapado del todo no
+            produce nada. Más gordo que antes (siete en vez de cinco): con el
+            Árbol de cinco mil ramas hay mucho donde recortarse, así que
+            aguanta más emisor sin quemarse. */}
         <mesh
           ref={setSun}
           position={[
             TREE_POSITION[0],
-            TREE_POSITION[1] + TREE.height * 0.78 * TREE_SCALE,
+            TREE_POSITION[1] + TREE.height * 0.72 * TREE_SCALE,
             TREE_POSITION[2],
           ]}
         >
-          <sphereGeometry args={[5, 16, 16]} />
+          <sphereGeometry args={[7, 16, 16]} />
           <meshBasicMaterial color="#f6cf96" toneMapped={false} fog={false} />
         </mesh>
 
@@ -148,16 +153,10 @@ export default function World({ reduced, onReady }: { reduced: boolean; onReady:
           fade
           speed={reduced ? 0 : 0.4}
         />
-        {/* Las motas doradas que flotan alrededor del Árbol */}
-        <Sparkles
-          count={Math.round(110 * q.particles)}
-          scale={[46, 30, 46]}
-          position={[0, 8, -8]}
-          size={2.6}
-          speed={reduced ? 0 : 0.18}
-          color="#f0cf8a"
-          opacity={0.5}
-        />
+        {/* Las hojas que caen, que sustituyen a las motas de drei: aquellas
+            vivían en una caja fija alrededor del origen y se acababan en
+            cuanto la cámara se iba de ahí. Estas envuelven a la cámara. */}
+        <Leaves reduced={reduced} density={q.particles} />
 
         <CameraRig reduced={reduced} />
         <Post sun={sun} quality={quality} reduced={reduced} />

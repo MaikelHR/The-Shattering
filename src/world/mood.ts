@@ -67,6 +67,38 @@ export function rot(position: number): number {
   return Math.min(mapRange(position, 4.6, 6.0, 0, 1), mapRange(position, 6.7, 8.0, 1, 0.16));
 }
 
+/**
+ * QUÉ HACE EL AIRE
+ * ------------------------------------------------------------
+ * Las dos funciones de abajo existen por los **respiros**: las nueve
+ * estaciones sin texto que hasta ahora solo servían para viajar. Son el sitio
+ * donde caben las cosas que no caben en un capítulo, y las que caben son
+ * estas dos.
+ */
+
+/**
+ * Cuánta ceniza va mezclada con las hojas: 0 son hojas doradas, 1 es ceniza.
+ *
+ * Entra en Caelid, llena el respiro siguiente y se ha ido para cuando la
+ * cámara llega al fondo del barranco, donde el aire vuelve a ser de oro. No
+ * hace falta contarlo en el texto: si el aire cambia de color, ya está
+ * contado.
+ */
+export function soot(position: number): number {
+  return Math.min(mapRange(position, 5.8, 6.6, 0, 1), mapRange(position, 7.0, 8.2, 1, 0));
+}
+
+/**
+ * Hacia dónde va lo que flota: −1 cae, +1 sube.
+ *
+ * Sube en el barranco y mientras se sale de él. Es la única vez en toda la
+ * crónica que algo va hacia arriba, y por eso se nota: ahí abajo la luz sale
+ * de la tierra, así que lo que flota va hacia la superficie y no hacia ella.
+ */
+export function updraft(position: number): number {
+  return -1 + Math.min(mapRange(position, 7.0, 7.8, 0, 2), mapRange(position, 9.4, 10.6, 2, 0));
+}
+
 /** V · Las raíces se encienden bajo la capital (estación 8). */
 export function roots(position: number): number {
   return mapRange(position, 6.9, 8.2, 0, 1);
