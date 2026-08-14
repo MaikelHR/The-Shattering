@@ -105,15 +105,15 @@ van juntas o hay que verificar dos veces.
 - [x] **El preloader.** Una runa dorada —el Anillo partido con el Árbol
       dentro— que se dibuja sola con DrawSVG sobre negro, y un destello que
       abre el mundo. El primero de los cinco momentos.
-- [ ] **ScrollSmoother**, y decidir con honestidad si suma o marea. Cambia la
-      sensación de la página entera más que cualquier otra cosa de la lista.
-      Requiere `#smooth-wrapper > #smooth-content`, con lo fijo (canvas, riel,
-      barra) **fuera** del wrapper, que ya lo está.
-      **Riesgo real:** el scroll pasa a ser virtual, y las dieciocho anclas de
-      estación se miden hoy con `offsetTop` y `window.scrollY`. Hay que pasarlo
-      a `ScrollSmoother.scrollTop()` y volver a comprobar que la cámara llega al
-      encuadre del capítulo que se está leyendo, que es la pieza que sostiene
-      todo lo demás.
+- [x] **ScrollSmoother** puesto, con `smooth: 0.8` y sin suavizado en táctil.
+      El riesgo que se temía —que el mundo se desincronizara del texto— no se
+      dio: ScrollTrigger lee la posición **suavizada** y no la real, así que el
+      puente sigue entregando lo que el lector ve. Comprobado: capítulo
+      centrado a 0 px de desfase, riel correcto, salto desde el riel exacto,
+      181 fps.
+      **Queda una decisión que no es técnica:** si la inercia suma o marea.
+      Volver a `smooth: 0.5` la hace casi imperceptible, y quitar la línea la
+      desactiva entera.
 
 ### 2 · La Fractura pinneada
 
@@ -234,8 +234,8 @@ Vale tanto como la lista de arriba: son decisiones tomadas, no olvidos.
 
 | Concepto | Al empezar | Hoy | Objetivo |
 |---|---|---|---|
-| **JS que bloquea el primer pintado** (gzip) | 345 KB | **118 KB** | < 200 KB |
-| JS total (gzip) | 345 KB | 549 KB | — |
+| **JS que bloquea el primer pintado** (gzip) | 345 KB | **124 KB** | < 200 KB |
+| JS total (gzip) | 345 KB | 554 KB | — |
 | Primer pintado | — | 84 ms (local) | < 2,5 s en conexión buena |
 | Imágenes | 0 | 965 KB (dos texturas de roca) | < 1,5 MB |
 | Audio | 0 | 0 | < 250 KB |

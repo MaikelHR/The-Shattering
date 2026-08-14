@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import Chapter from './components/Chapter';
 import ChapterRail from './components/ChapterRail';
 import Preloader, { PRELOADER_TIMEOUT } from './components/Preloader';
@@ -22,7 +22,7 @@ import { setChapterAnchors, writeScroll } from './scrollState';
  */
 const World = lazy(() => import('./world/World'));
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, useGSAP);
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, useGSAP);
 
 // En móvil, la barra de URL que aparece y desaparece cambia el alto del
 // viewport y dispara un resize. Sin esto, ScrollTrigger remide toda la
@@ -33,6 +33,7 @@ const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
 export default function App() {
   const page = useRef<HTMLDivElement>(null);
+  const smoother = useRef<ScrollSmoother | null>(null);
   const [active, setActive] = useState(0);
   /** El mundo 3D ya dibujó su primer frame. */
   const [worldReady, setWorldReady] = useState(false);
@@ -82,8 +83,33 @@ export default function App() {
     if (revealed) ScrollTrigger.refresh();
   }, [revealed]);
 
+  // Los capítulos crean sus propios disparadores, y no pueden hacerlo hasta
+  // que exista el scroll suavizado: ScrollSmoother cambia el `scroller` por
+  // defecto de ScrollTrigger, y lo que se crea antes se queda apuntando a la
+  // ventana. React ejecuta los efectos de los hijos ANTES que los del padre,
+  // así que los capítulos siempre irían primero. Esto los desarma hasta que
+  // el efecto pasivo de App —que sí corre después— les da permiso.
+  const [armed, setArmed] = useState(false);
+  useEffect(() => setArmed(true), []);
+
   const { contextSafe } = useGSAP(
     () => {
+      // ---- Scroll con inercia ----
+      // Va lo primero de todo por lo que se explica arriba. Con movimiento
+      // reducido no se crea: la inercia es movimiento que el usuario no pidió.
+      //
+      // `smoothTouch: 0` a propósito. En un móvil el propio sistema ya da
+      // inercia, y sumarle otra encima se siente como si la página resbalara.
+      if (!reduced) {
+        smoother.current = ScrollSmoother.create({
+          wrapper: '#smooth-wrapper',
+          content: '#smooth-content',
+          smooth: 0.8,
+          smoothTouch: 0,
+          effects: false,
+        });
+      }
+
       // A qué altura de scroll queda centrada cada sección. Es lo que le
       // permite al mundo 3D estar en el encuadre de la estación que se está
       // leyendo, y no en el que tocaría por regla de tres. Se miden todas,
@@ -175,20 +201,22 @@ export default function App() {
 
   // contextSafe: el tween queda dentro del contexto de useGSAP, así que
   // se limpia solo si el componente se desmonta a mitad del viaje.
+  //
+  // El salto lo hace el propio smoother y no un tween sobre `window`: con el
+  // scroll suavizado, la posición de la ventana y la que se ve son dos cosas
+  // distintas, y animar la primera deja al lector mirando otro sitio.
   const goToChapter = contextSafe((index: number) => {
     const target = document.querySelector<HTMLElement>(`[data-chapter="${index}"]`);
     if (!target) return;
 
-    if (reduced) {
-      window.scrollTo({ top: target.offsetTop, behavior: 'auto' });
-      return;
-    }
+    const centrar = target.offsetTop + target.offsetHeight / 2 - window.innerHeight / 2;
 
-    gsap.to(window, {
-      duration: 1.1,
-      ease: 'power2.inOut',
-      scrollTo: { y: target, autoKill: true }, // autoKill: si tocás la rueda, manda el usuario
-    });
+    if (smoother.current) {
+      // `smooth: true` deja que el propio suavizado haga el viaje.
+      smoother.current.scrollTo(centrar, true);
+    } else {
+      window.scrollTo({ top: centrar, behavior: 'auto' });
+    }
   });
 
   return (
@@ -209,39 +237,49 @@ export default function App() {
 
       <ChapterRail active={active} onSelect={goToChapter} />
 
-      <div className="page" ref={page}>
-        <header className="hero">
-          <p className="hero__eyebrow hero__line">Elden Ring · crónica de un orden roto</p>
-          <h1 className="hero__title hero__line">Tierras Intermedias</h1>
-          <p className="hero__sub hero__line">
-            El Anillo se rompió y la luz quedó repartida entre quienes no supieron cuidarla.
-          </p>
-          <p className="hero__scroll hero__line">Desplazate para descender</p>
-        </header>
+      {/* El scroll suavizado envuelve SOLO el texto. Todo lo fijo —el canvas,
+          el riel, la barra de progreso y la entrada— vive fuera a propósito:
+          ScrollSmoother mueve `#smooth-content` con un transform, y lo que
+          esté dentro se mueve con él por muy `position: fixed` que sea. */}
+      <div id="smooth-wrapper">
+        <div id="smooth-content">
+          <div className="page" ref={page}>
+            <header className="hero">
+              <p className="hero__eyebrow hero__line">Elden Ring · crónica de un orden roto</p>
+              <h1 className="hero__title hero__line">Tierras Intermedias</h1>
+              <p className="hero__sub hero__line">
+                El Anillo se rompió y la luz quedó repartida entre quienes no supieron cuidarla.
+              </p>
+              <p className="hero__scroll hero__line">Desplazate para descender</p>
+            </header>
 
-        {/* Una sección por estación. Las que no llevan capítulo ocupan scroll
-            y no muestran nada: son el respiro entre dos textos, y de paso el
-            tramo donde la cámara hace su viaje sin que nadie lea. */}
-        {BEATS.map((beat, i) => (
-          <Chapter
-            key={i}
-            chapter={beat.chapter}
-            index={i}
-            align={ALIGN.get(i)}
-            reduced={reduced}
-          />
-        ))}
+            {/* Una sección por estación. Las que no llevan capítulo ocupan
+                scroll y no muestran nada: son el respiro entre dos textos, y
+                de paso el tramo donde la cámara viaja sin que nadie lea. */}
+            {BEATS.map((beat, i) => (
+              <Chapter
+                key={i}
+                chapter={beat.chapter}
+                index={i}
+                align={ALIGN.get(i)}
+                armed={armed}
+                reduced={reduced}
+              />
+            ))}
 
-        <footer className="colophon">
-          <p className="colophon__note">
-            Mundo generado en tiempo real. La cámara sigue tu scroll: no hay video.
-          </p>
-          <p className="colophon__tech">React · Three.js · GSAP ScrollTrigger</p>
-          <p className="colophon__legal">
-            Proyecto de fan, sin fines comerciales. Elden Ring es de FromSoftware y Bandai Namco.
-            Nada de lo que ves acá es material del juego: todo está dibujado con geometría.
-          </p>
-        </footer>
+            <footer className="colophon">
+              <p className="colophon__note">
+                Mundo generado en tiempo real. La cámara sigue tu scroll: no hay video.
+              </p>
+              <p className="colophon__tech">React · Three.js · GSAP ScrollTrigger</p>
+              <p className="colophon__legal">
+                Proyecto de fan, sin fines comerciales. Elden Ring es de FromSoftware y Bandai
+                Namco. Nada de lo que ves acá es material del juego: todo está dibujado con
+                geometría.
+              </p>
+            </footer>
+          </div>
+        </div>
       </div>
     </>
   );

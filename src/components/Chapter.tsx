@@ -13,6 +13,14 @@ interface ChapterProps {
   index: number;
   /** De qué lado va el bloque de texto. Lo decide `ALIGN` en story.ts. */
   align?: 'left' | 'right';
+  /**
+   * Permiso de App para crear los disparadores. No es un capricho: el scroll
+   * suavizado cambia el `scroller` por defecto de ScrollTrigger al crearse, y
+   * React ejecuta los efectos de los hijos antes que los del padre. Sin este
+   * freno, cada capítulo registraría su disparador contra la ventana y se
+   * dispararía en el sitio equivocado.
+   */
+  armed: boolean;
   reduced: boolean;
 }
 
@@ -33,13 +41,19 @@ interface ChapterProps {
  * cada capítulo parte los títulos de toda la página, se pisan entre sí y
  * terminan todos invisibles. Por eso le pasamos el elemento por ref.
  */
-export default function Chapter({ chapter, index, align = 'left', reduced }: ChapterProps) {
+export default function Chapter({
+  chapter,
+  index,
+  align = 'left',
+  armed,
+  reduced,
+}: ChapterProps) {
   const root = useRef<HTMLElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
 
   useGSAP(
     () => {
-      if (reduced || !chapter || !title.current) return;
+      if (!armed || reduced || !chapter || !title.current) return;
 
       const split = new SplitText(title.current, {
         type: 'words',
@@ -52,6 +66,13 @@ export default function Chapter({ chapter, index, align = 'left', reduced }: Cha
           start: 'top 72%',
           end: 'bottom 55%',
           toggleActions: 'play none none reverse',
+          // `toggleActions` solo actúa al cruzar el borde. Si el navegador
+          // restauró el scroll a mitad de página, este capítulo ya está
+          // dentro cuando se crea el disparador y el revelado no llegaría
+          // nunca: el texto se quedaría invisible para siempre.
+          onRefresh: (self) => {
+            if (self.progress > 0 && self.animation) self.animation.progress(1);
+          },
         },
       });
 
@@ -81,7 +102,7 @@ export default function Chapter({ chapter, index, align = 'left', reduced }: Cha
 
       return () => split.revert();
     },
-    { scope: root, dependencies: [reduced, chapter] },
+    { scope: root, dependencies: [armed, reduced, chapter] },
   );
 
   // Un respiro: la sección existe para ocupar scroll y para que la cámara

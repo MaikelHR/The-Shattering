@@ -338,3 +338,32 @@ Y otra vez la misma trampa de siempre: a mitad de la comprobación pareció que 
 runa no se dibujaba —el `stroke-dasharray` congelado en el 0%— y era la ventana
 de Chrome minimizada por las compilaciones. Sin `requestAnimationFrame` no corre
 el ticker de GSAP. Tercera vez.
+
+### 0.7 · Scroll con inercia — 14 de agosto
+
+- [x] **ScrollSmoother**, con `smooth: 0.8` y sin suavizado en táctil (en un
+      móvil el sistema ya da inercia, y sumarle otra encima resbala)
+- [x] El salto desde el riel lo hace el propio smoother. Con el scroll
+      suavizado, la posición de la ventana y la que se ve son dos cosas
+      distintas, y animar la primera deja al lector mirando otro sitio
+
+**El miedo era que el mundo se desincronizara del texto**, que es el fallo que
+ya se arregló una vez. No pasa, y por una razón que hubo que ir a leer al código
+de GSAP: el getter que ScrollSmoother registra como `scrollerProxy` devuelve
+`-currentY`, la posición **ya suavizada**, no la real. Así que `self.scroll()`
+sigue entregando lo que el lector ve y el puente no se entera del cambio.
+Comprobado: capítulo centrado a 0 px de desfase, riel correcto, 181 fps.
+
+**Lo que sí hubo que arreglar es un orden de efectos.** ScrollSmoother cambia el
+`scroller` por defecto de ScrollTrigger *al crearse*, y lo que se registró antes
+se queda apuntando a la ventana. React ejecuta los efectos de los hijos antes que
+los del padre, así que los dieciocho capítulos creaban sus disparadores antes de
+que App creara el smoother. Se resuelve con un permiso: App crea el smoother en
+su efecto de layout y enciende un `armed` en un efecto pasivo —que sí corre
+después—, y los capítulos no registran nada hasta tenerlo.
+
+De paso salió un fallo latente que llevaba ahí desde el principio:
+`toggleActions` solo actúa al cruzar el borde, así que un capítulo cuyo
+disparador se crea cuando ya está dentro de la pantalla —al recargar a mitad de
+página— no revelaba su texto nunca. Ahora hay un `onRefresh` que lo adelanta al
+final si ya está dentro.
