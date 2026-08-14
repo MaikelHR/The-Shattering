@@ -7,6 +7,7 @@ import Terrain from './Terrain';
 import Grass from './Grass';
 import Rocks from './Rocks';
 import Ruins from './Ruins';
+import Capital from './Capital';
 import Erdtree from './Erdtree';
 import Haligtree from './Haligtree';
 import Azula from './Azula';
@@ -84,8 +85,13 @@ export default function World({ reduced, onReady }: { reduced: boolean; onReady:
           />
         )}
 
-        <fog attach="fog" args={[HAZE, 26, 330]} />
-        <Sky />
+        {/* Niebla exponencial y no lineal. La lineal tiene un principio: hasta
+            las veintiséis unidades no había nada de bruma y a partir de ahí
+            empezaba de golpe. La exponencial arranca desde el ojo, que es lo
+            que hace el aire de verdad, y se nota en los planos cortos —el
+            fondo del barranco— más que en los lejanos. */}
+        <fogExp2 attach="fog" args={[HAZE, 0.0045]} />
+        <Sky reduced={reduced} />
 
         <Environment resolution={256} frames={1}>
           {/* El Árbol, que es de donde viene casi toda la luz */}
@@ -104,6 +110,10 @@ export default function World({ reduced, onReady }: { reduced: boolean; onReady:
           <Terrain />
           <Rocks density={q.particles} />
           <Ruins density={q.particles} />
+          {/* Al pie del Árbol, y es lo que le da la escala: pone algo de
+              tamaño conocido en el hueco que había entre las ruinas de cerca
+              y las montañas de lejos. */}
+          <Capital />
           <Ready onReady={onReady} />
         </Suspense>
         <Grass reduced={reduced} density={q.particles} />

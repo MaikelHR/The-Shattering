@@ -454,3 +454,37 @@ lo que hay que ver.
 La lección que sirve para la próxima: **cuando algo «se ve raro», casi siempre
 hay una proporción que lo dice.** Medir el tronco pelado contra el que sí se ve
 bien fue más rápido y más seguro que probar valores a ojo.
+
+### 0.10 · El mundo alrededor — 14 de agosto
+
+- [x] **La capital**, `Capital.tsx`: una muralla curvada con sus torres, una
+      puerta, las agujas de la ciudad detrás y una torre mayor corrida a un
+      lado. Unas ciento veinte piezas en tres llamadas de dibujo
+- [x] **Nubes** en el shader del cielo
+- [x] **Niebla exponencial** en vez de lineal
+- [x] `ruins/Batch.tsx`: el componente que vuelca matrices en un
+      `InstancedMesh`, que estaba copiado en las ruinas y en Farum Azula y
+      estaba a punto de estarlo por tercera vez
+
+**La capital no es decoración: es lo que hace que el Árbol se vea enorme.** Un
+objeto grande y lejano no se lee como grande por sí solo; hace falta algo entre
+el ojo y él a lo que el ojo le conozca el tamaño. Había ruinas a cincuenta
+unidades y montañas a ciento cincuenta, y en medio nada. La capital ocupa ese
+hueco.
+
+Dos cosas que hubo que corregir contra el navegador, las dos de escala:
+
+- **Era un tercio demasiado grande** y tapaba la cordillera entera. Las alturas
+  bajaron de 15-30 a 10-20 y la muralla se alejó ocho unidades.
+- **La torre mayor estaba centrada**, justo delante del tronco del Árbol, y se
+  lo comía. Corrida dieciocho unidades a un lado, se leen las dos.
+
+De las nubes, lo único que tiene truco es la proyección: la dirección de la
+vista se divide por su propia altura (`dir.xz / dir.y`), que es proyectarla
+sobre un plano horizontal. Eso hace que se aplasten hacia el horizonte igual
+que las de verdad, sin más código. Por debajo de unos veinte grados se apagan,
+porque ahí esa división estira tanto el ruido que se ve el patrón. Y el color
+sale del propio cielo aclarado, así que se tiñen solas con la podredumbre y con
+el incendio sin un uniform aparte.
+
+180 fps con todo puesto.

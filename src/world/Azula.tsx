@@ -1,7 +1,8 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Euler, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import type { BufferGeometry, Group, InstancedMesh } from 'three';
+import type { Group } from 'three';
+import Batch from './ruins/Batch';
 import { PIECES } from './ruins/pieces';
 
 /**
@@ -177,33 +178,6 @@ function buildCity(seed = 9137): CityLayout {
 
 const CITY = buildCity();
 
-function Pieces({
-  geometry,
-  material,
-  matrices,
-  count,
-}: {
-  geometry: BufferGeometry;
-  material: MeshStandardMaterial;
-  matrices: Matrix4[];
-  count: number;
-}) {
-  const mesh = useRef<InstancedMesh>(null);
-
-  useLayoutEffect(() => {
-    const instanced = mesh.current;
-    if (!instanced) return;
-    matrices.forEach((matrix, i) => instanced.setMatrixAt(i, matrix));
-    instanced.instanceMatrix.needsUpdate = true;
-    instanced.count = count;
-    instanced.computeBoundingSphere();
-  }, [matrices, count]);
-
-  if (matrices.length === 0) return null;
-
-  return <instancedMesh ref={mesh} args={[geometry, material, matrices.length]} />;
-}
-
 export default function Azula({ reduced, density }: { reduced: boolean; density: number }) {
   const group = useRef<Group>(null);
 
@@ -238,25 +212,10 @@ export default function Azula({ reduced, density }: { reduced: boolean; density:
 
   return (
     <group ref={group} position={POSITION} scale={1.5}>
-      <Pieces
-        geometry={PIECES.column}
-        material={material}
-        matrices={CITY.columns}
-        count={CITY.columns.length}
-      />
-      <Pieces
-        geometry={PIECES.brokenColumn}
-        material={material}
-        matrices={CITY.brokenColumns}
-        count={CITY.brokenColumns.length}
-      />
-      <Pieces geometry={PIECES.block} material={material} matrices={CITY.blocks} count={rubble} />
-      <Pieces
-        geometry={PIECES.lintel}
-        material={material}
-        matrices={CITY.lintels}
-        count={CITY.lintels.length}
-      />
+      <Batch geometry={PIECES.column} material={material} matrices={CITY.columns} />
+      <Batch geometry={PIECES.brokenColumn} material={material} matrices={CITY.brokenColumns} />
+      <Batch geometry={PIECES.block} material={material} matrices={CITY.blocks} count={rubble} />
+      <Batch geometry={PIECES.lintel} material={material} matrices={CITY.lintels} />
     </group>
   );
 }

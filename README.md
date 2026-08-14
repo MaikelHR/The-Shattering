@@ -103,7 +103,8 @@ src/
     ├── Rocks.tsx         # las pedreras
     ├── Erdtree.tsx       # el Árbol Áureo: ramas, hojas, luz y sombra
     ├── Haligtree.tsx     # el Árbol Sagrado, del mismo generador
-    ├── Ruins.tsx         # lo que queda de la capital
+    ├── Ruins.tsx         # lo que queda de la capital, cerca
+    ├── Capital.tsx       # y la capital en pie, al fondo
     ├── Azula.tsx         # la ciudad que lleva mil años cayéndose
     ├── BrokenRing.tsx    # el Anillo, que la Fractura parte en tres
     ├── Roots.tsx         # las raíces encendidas, cruzando el barranco
@@ -111,6 +112,7 @@ src/
     ├── erdtree/branches.ts    # los árboles, generados por recursión
     ├── ruins/
     │   ├── pieces.ts          # la cantería: columna, sillar, dintel
+    │   ├── Batch.tsx          # una tanda de piezas, en una llamada de dibujo
     │   └── layout.ts          # dónde estuvo cada edificio
     └── terrain/
         ├── noise.ts           # ruido de gradiente y sus octavas
@@ -181,9 +183,12 @@ entonces la decisión de quemarlo todo.
   objeto enorme y cercano se lee como un objeto normal: lo que comunica el tamaño
   es la distancia percibida, y esa la dan tres cosas juntas. Que esté lejos de
   verdad (el Árbol vive a ciento ochenta unidades, en la cordillera del norte),
-  que haya planos intermedios entre el ojo y él (ruinas, llanura, montañas), y que
-  la bruma lo lave como lava todo lo lejano. Con eso, unas columnas de seis
-  unidades en primer plano dicen sin decir nada que el Árbol mide ciento veinte.
+  que haya planos intermedios entre el ojo y él, y que la bruma lo lave como lava
+  todo lo lejano. De los tres, el que más costó ver es el segundo: durante mucho
+  tiempo había ruinas a cincuenta unidades y montañas a ciento cincuenta, y en
+  medio nada. La capital ocupa ese hueco, y por eso está puesta — no por decorar.
+  Con ella, unas columnas de seis unidades en primer plano dicen sin decir nada
+  que el Árbol mide ciento veinte.
 - **El mundo cambia de color con la niebla y las luces, no con un filtro.** Cuando
   el este se pudre y cuando el Árbol arde, lo tentador es una vuelta de tono en el
   postprocesado. Se ve mal, y por una razón concreta: un filtro tiñe por igual lo

@@ -41,7 +41,37 @@ const FRAG = /* glsl */ `
   uniform vec3 uGlow;
   uniform vec3 uGlowDir;
   uniform float uGlowStrength;
+  uniform float uDrift;
   varying vec3 vDir;
+
+  // Ruido de valor con hash: cuatro líneas y no hace falta ninguna textura.
+  float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+      f.y
+    );
+  }
+
+  float fbm(vec2 p) {
+    float v = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 4; i++) {
+      v += a * noise(p);
+      p *= 2.03;
+      a *= 0.5;
+    }
+    return v;
+  }
 
   void main() {
     vec3 dir = normalize(vDir);
@@ -49,6 +79,26 @@ const FRAG = /* glsl */ `
 
     vec3 col = mix(uGround, uHorizon, smoothstep(0.30, 0.52, h));
     col = mix(col, uZenith, smoothstep(0.50, 0.95, h));
+
+    // ---- Las nubes ----
+    // La dirección se proyecta sobre un plano horizontal, que es lo que hace
+    // que se aplasten hacia el horizonte igual que las de verdad. Por debajo
+    // de unos veinte grados se apagan: ahí la proyección estira tanto el
+    // ruido que se ve el patrón, y además es donde la bruma se lo comería.
+    float above = smoothstep(0.02, 0.35, dir.y);
+    if (above > 0.0) {
+      vec2 p = dir.xz / max(dir.y, 0.08) * 0.55 + vec2(uDrift, uDrift * 0.35);
+      // Umbral alto: deja jirones sueltos en vez de una sopa gris tapándolo
+      // todo. El cielo de esta historia tiene que dejar ver el Árbol.
+      float clouds = smoothstep(0.52, 0.86, fbm(p)) * above;
+      // Del propio color del cielo, aclarado. Así se tiñen solas cuando el
+      // este se pudre o el Árbol arde, sin un uniform aparte.
+      vec3 tint = mix(uHorizon, uZenith, 0.35) * 2.6 + uGlow * 0.05;
+      col = mix(col, tint, clouds * 0.75);
+      // Y el resplandor del Árbol les da por debajo, como a todo lo demás.
+      col += uGlow * clouds * pow(max(dot(dir, normalize(uGlowDir)), 0.0), 2.5)
+             * uGlowStrength * 0.5;
+    }
 
     // El halo alrededor del Árbol, que es de donde viene toda la luz.
     float d = max(dot(dir, normalize(uGlowDir)), 0.0);
@@ -90,7 +140,13 @@ const BURN_GLOW = new Color('#ff7a2e');
 const ASH_HORIZON = new Color('#33332f');
 const ASH_ZENITH = new Color('#1a1a18');
 
-export default function Sky({ strength = 0.46 }: { strength?: number }) {
+export default function Sky({
+  reduced,
+  strength = 0.46,
+}: {
+  reduced: boolean;
+  strength?: number;
+}) {
   const dome = useRef<Mesh>(null);
   const dir = useRef(new Vector3());
   const sick = useRef(0);
@@ -112,6 +168,7 @@ export default function Sky({ strength = 0.46 }: { strength?: number }) {
           uGlow: { value: GLOW.clone() },
           uGlowDir: { value: new Vector3(0, 1, 0) },
           uGlowStrength: { value: strength },
+          uDrift: { value: 0 },
         },
       }),
     [strength],
@@ -125,6 +182,10 @@ export default function Sky({ strength = 0.46 }: { strength?: number }) {
     d.position.copy(state.camera.position);
     dir.current.copy(GLOW_TARGET).sub(state.camera.position).normalize();
     material.uniforms.uGlowDir.value.copy(dir.current);
+
+    // Las nubes derivan muy despacio. Es el único movimiento autónomo del
+    // cielo, así que con movimiento reducido se quedan quietas.
+    if (!reduced) material.uniforms.uDrift.value = state.clock.elapsedTime * 0.004;
 
     const pos = scrollState.position;
     sick.current = damp(sick.current, rot(pos), 2, delta);

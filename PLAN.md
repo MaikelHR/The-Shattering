@@ -45,7 +45,7 @@ cinco, la escena deja de leerse como maqueta aunque no sea fotorrealista.
 | Los cambios de color del mundo (podredumbre, incendio) | ✅ |
 | La entrada: runa, destello y carga diferida | ✅ |
 | La Fractura, clavada en pantalla | ✅ |
-| El mundo alrededor: la capital, el cielo | ⏳ replanteado, ver abajo |
+| El mundo alrededor: la capital, el cielo | ✅ |
 | Atmósfera viva: hojas, ceniza, sonido | ⏳ |
 | GSAP a fondo: la entrada, la Fractura, el texto | ⏳ |
 | Interacción y publicación | ⏳ |
@@ -143,16 +143,15 @@ atrás. Es el tipo de momento que la gente rebobina.
 
 Lo que la fase C venía a tapar, hecho con geometría.
 
-- [ ] **La capital en el horizonte.** Leyndell en silueta, al norte, entre la
-      llanura y el Árbol. Se monta con la técnica que ya está probada en
-      `Azula.tsx`: piezas de `ruins/pieces.ts` instanciadas en un grupo, con
-      murallas y torres. A esa distancia lo único que llega es la silueta, así
-      que no necesita ni texturas ni detalle.
-- [ ] **Nubes en el cielo.** En el shader del domo, no como imagen: ruido
-      fractal con parallax por altura. Cuesta cero de descarga y se puede teñir
-      con la podredumbre y el incendio como ya hace todo lo demás.
-- [ ] **Niebla exponencial** (`fogExp2`) en vez de lineal: se parece más a la
-      atenuación real y no tiene un corte visible al fondo.
+- [x] **La capital en el horizonte.** Leyndell en silueta a cien unidades, con
+      la técnica ya probada en `Azula.tsx`. No es decoración: es lo que hace que
+      el Árbol se vea enorme, porque llena el hueco que había entre las ruinas
+      de cerca y las montañas de lejos.
+- [x] **Nubes en el cielo**, en el shader del domo: ruido fractal proyectado
+      sobre un plano horizontal, así que se aplastan hacia el horizonte solas.
+      Se tiñen con la podredumbre y el incendio sin un uniform aparte, porque
+      su color sale del propio cielo.
+- [x] **Niebla exponencial** (`fogExp2`) en vez de lineal.
 
 ### 4 · Atmósfera viva
 

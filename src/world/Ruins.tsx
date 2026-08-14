@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTexture } from '@react-three/drei';
 import { MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
-import type { BufferGeometry, InstancedMesh, Matrix4 } from 'three';
+import Batch from './ruins/Batch';
 import { PIECES } from './ruins/pieces';
 import { RUINS } from './ruins/layout';
 
@@ -22,46 +22,13 @@ import { RUINS } from './ruins/layout';
  * a contraluz.
  */
 
-function Pieces({
-  geometry,
-  material,
-  matrices,
-  density,
-}: {
-  geometry: BufferGeometry;
-  material: MeshStandardMaterial;
-  matrices: Matrix4[];
-  density: number;
-}) {
-  const mesh = useRef<InstancedMesh>(null);
-
-  useLayoutEffect(() => {
-    const instanced = mesh.current;
-    if (!instanced) return;
-    matrices.forEach((matrix, i) => instanced.setMatrixAt(i, matrix));
-    instanced.instanceMatrix.needsUpdate = true;
-    instanced.computeBoundingSphere();
-  }, [matrices]);
-
-  useEffect(() => {
-    const instanced = mesh.current;
-    if (!instanced) return;
-    // Las ruinas aguantan mejor el recorte que la hierba: son pocas piezas y
-    // cada una cuenta, así que en calidad baja se quitan solo las últimas.
-    instanced.count = Math.max(1, Math.round(matrices.length * Math.min(1, density + 0.45)));
-  }, [matrices, density]);
-
-  if (matrices.length === 0) return null;
-
-  return (
-    <instancedMesh
-      ref={mesh}
-      args={[geometry, material, matrices.length]}
-      castShadow
-      receiveShadow
-    />
-  );
-}
+/**
+ * Cuántas piezas se dibujan de las que hay. Las ruinas aguantan mejor el
+ * recorte que la hierba —son pocas y cada una cuenta—, así que en calidad
+ * baja se quitan solo las últimas.
+ */
+const shown = (total: number, density: number) =>
+  Math.max(1, Math.round(total * Math.min(1, density + 0.45)));
 
 export default function Ruins({ density }: { density: number }) {
   const [rockMap, rockNormal] = useTexture([
@@ -90,15 +57,24 @@ export default function Ruins({ density }: { density: number }) {
 
   return (
     <group>
-      <Pieces geometry={PIECES.column} material={material} matrices={RUINS.columns} density={density} />
-      <Pieces
-        geometry={PIECES.brokenColumn}
-        material={material}
-        matrices={RUINS.brokenColumns}
-        density={density}
-      />
-      <Pieces geometry={PIECES.block} material={material} matrices={RUINS.blocks} density={density} />
-      <Pieces geometry={PIECES.lintel} material={material} matrices={RUINS.lintels} density={density} />
+      {(
+        [
+          ['column', RUINS.columns],
+          ['brokenColumn', RUINS.brokenColumns],
+          ['block', RUINS.blocks],
+          ['lintel', RUINS.lintels],
+        ] as const
+      ).map(([kind, matrices]) => (
+        <Batch
+          key={kind}
+          geometry={PIECES[kind]}
+          material={material}
+          matrices={matrices}
+          count={shown(matrices.length, density)}
+          castShadow
+          receiveShadow
+        />
+      ))}
     </group>
   );
 }
