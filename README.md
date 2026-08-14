@@ -183,7 +183,7 @@ entonces la decisión de quemarlo todo.
   verdad (el Árbol vive a ciento ochenta unidades, en la cordillera del norte),
   que haya planos intermedios entre el ojo y él (ruinas, llanura, montañas), y que
   la bruma lo lave como lava todo lo lejano. Con eso, unas columnas de seis
-  unidades en primer plano dicen sin decir nada que el Árbol mide ciento treinta.
+  unidades en primer plano dicen sin decir nada que el Árbol mide ciento veinte.
 - **El mundo cambia de color con la niebla y las luces, no con un filtro.** Cuando
   el este se pudre y cuando el Árbol arde, lo tentador es una vuelta de tono en el
   postprocesado. Se ve mal, y por una razón concreta: un filtro tiñe por igual lo
@@ -218,4 +218,6 @@ entonces la decisión de quemarlo todo.
 
 ## Qué sigue
 
-Ver **[PLAN_DE_DESARROLLO.md](./PLAN_DE_DESARROLLO.md)**.
+- **[PLAN.md](./PLAN.md)** — lo que falta, en orden, y lo que se decidió no hacer.
+- **[BITACORA.md](./BITACORA.md)** — lo que pasó y lo que costó averiguarlo: las
+  decisiones de fondo y las trampas en las que ya caímos.
