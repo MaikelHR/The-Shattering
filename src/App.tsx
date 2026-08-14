@@ -1,13 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-import World from './world/World';
 import Chapter from './components/Chapter';
 import ChapterRail from './components/ChapterRail';
+import Preloader, { PRELOADER_TIMEOUT } from './components/Preloader';
 import { ALIGN, BEATS, CHAPTERS } from './story';
 import { setChapterAnchors, writeScroll } from './scrollState';
+
+/**
+ * El mundo 3D llega aparte y después.
+ *
+ * Es medio mega de JavaScript —Three, R3F, drei y el postprocesado— contra
+ * los setenta kilobytes de la página. Importándolo aquí arriba, el navegador
+ * tiene que descargarlo y compilarlo entero antes de pintar una sola letra.
+ * Con `lazy`, el texto se sirve de inmediato y el motor entra por detrás,
+ * mientras la entrada se dibuja.
+ *
+ * Ojo: esto no quita ni un byte del total. Cambia cuándo llegan.
+ */
+const World = lazy(() => import('./world/World'));
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, useGSAP);
 
@@ -21,6 +34,10 @@ const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 export default function App() {
   const page = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  /** El mundo 3D ya dibujó su primer frame. */
+  const [worldReady, setWorldReady] = useState(false);
+  /** La entrada terminó de salir: se puede desmontar y soltar el scroll. */
+  const [revealed, setRevealed] = useState(false);
   // Se lee en el inicializador, no en un efecto posterior: si arrancara
   // en false, quien pide movimiento reducido vería el primer render
   // animado antes de que la corrección llegue.
@@ -47,6 +64,23 @@ export default function App() {
       alive = false;
     };
   }, []);
+
+  // Tope de espera. El aviso del mundo llega desde un frame, y Chrome
+  // congela el `requestAnimationFrame` en una pestaña de fondo: sin esto,
+  // quien abra la página en segundo plano se queda con la pantalla negra.
+  useEffect(() => {
+    if (worldReady) return;
+    const id = window.setTimeout(() => setWorldReady(true), PRELOADER_TIMEOUT * 1000);
+    return () => window.clearTimeout(id);
+  }, [worldReady]);
+
+  // Mientras la entrada está puesta, el body va con `overflow: hidden`, así
+  // que el scroll máximo es cero y ScrollTrigger midió con ese cero. Al
+  // abrir hay que remedir, y de paso el `onRefresh` deja la cámara donde
+  // toca sin esperar a que el lector mueva la rueda.
+  useEffect(() => {
+    if (revealed) ScrollTrigger.refresh();
+  }, [revealed]);
 
   const { contextSafe } = useGSAP(
     () => {
@@ -108,16 +142,8 @@ export default function App() {
         scrollTrigger: { trigger: page.current, start: 'top top', end: 'bottom bottom', scrub: 0.3 },
       });
 
-      // Entrada del título principal.
+      // El hero se va desvaneciendo al bajar.
       if (!reduced) {
-        gsap.from('.hero__line', {
-          opacity: 0,
-          y: 40,
-          duration: 1.1,
-          stagger: 0.16,
-          ease: 'power3.out',
-          delay: 0.25,
-        });
         gsap.to('.hero', {
           opacity: 0,
           y: -70,
@@ -127,6 +153,24 @@ export default function App() {
       }
     },
     { dependencies: [reduced] },
+  );
+
+  // La entrada del título va aparte, y no en el bloque de arriba, porque
+  // tiene que esperar a que la entrada se abra. Con el destello todavía en
+  // pantalla se habría gastado a oscuras, y es el remate del momento: la
+  // luz se retira y el título sube.
+  useGSAP(
+    () => {
+      if (reduced || !revealed) return;
+      gsap.from('.hero__line', {
+        opacity: 0,
+        y: 40,
+        duration: 1.1,
+        stagger: 0.16,
+        ease: 'power3.out',
+      });
+    },
+    { dependencies: [reduced, revealed] },
   );
 
   // contextSafe: el tween queda dentro del contexto de useGSAP, así que
@@ -149,7 +193,15 @@ export default function App() {
 
   return (
     <>
-      <World reduced={reduced} />
+      {/* El fallback va vacío a propósito: lo que se ve mientras tanto es la
+          entrada, que está por encima y no depende de este Suspense. */}
+      <Suspense fallback={null}>
+        <World reduced={reduced} onReady={() => setWorldReady(true)} />
+      </Suspense>
+
+      {!revealed && (
+        <Preloader ready={worldReady} reduced={reduced} onDone={() => setRevealed(true)} />
+      )}
 
       <div className="progress" aria-hidden="true">
         <span className="progress__bar" />

@@ -49,6 +49,64 @@ body {
   overflow-x: hidden;
 }
 
+/* ---- La entrada ---- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: #070603;
+  /* No se lleva el puntero al salir: la última décima de la transición
+     tiene el mundo ya a la vista y sería raro no poder tocarlo. */
+  pointer-events: none;
+}
+
+/* Mientras la entrada está puesta, la página no se scrollea. Si no, se
+   puede bajar a ciegas y aparecer a mitad de la historia. */
+body:has(.preloader) {
+  overflow: hidden;
+}
+
+.preloader__rune {
+  width: min(52vw, 240px);
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 14px rgba(232, 195, 122, 0.45));
+}
+
+.preloader__tree path {
+  stroke-width: 3;
+}
+
+.preloader__tree path:first-child {
+  stroke-width: 4;
+}
+
+/* El halo: un disco borroso detrás de la runa, que entra al final. */
+.preloader__glow {
+  fill: rgba(232, 195, 122, 0.09);
+  stroke: none;
+  opacity: 0;
+  filter: blur(14px);
+}
+
+.preloader__flash {
+  position: absolute;
+  inset: -25%;
+  opacity: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    #fff6e2 0%,
+    rgba(246, 207, 150, 0.85) 22%,
+    rgba(232, 195, 122, 0) 62%
+  );
+}
+
 /* ---- El mundo 3D: fijo detrás de todo ---- */
 .world {
   position: fixed;

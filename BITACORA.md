@@ -298,3 +298,43 @@ primero llevaba semanas ahí sin que se viera.
       leía «VIIILA LLAMA»
 - [x] Los dos planes se fusionan en uno. Se solapaban en un setenta por ciento y
       varias casillas hablaban de cosas que ya no existen
+
+### 0.6 · La entrada — 14 de agosto
+
+- [x] **El mundo 3D se carga aparte y después** (`React.lazy`). Lo que bloquea
+      el primer pintado pasa de 549 a **118 KB gzip**, y el primer pintado a
+      84 ms. El total no baja: son los mismos bytes, llegando cuando ya no
+      estorban
+- [x] **El preloader**: una runa dorada —el Anillo partido con el Árbol
+      dentro— dibujándose sola con DrawSVG, y un destello que abre el mundo.
+      La entrada del título se traslada aquí: antes se gastaba a oscuras, y
+      ahora es el remate del momento
+- [x] La entrada trae dos redes de seguridad, y las dos hacen falta: un tope de
+      seis segundos por si el mundo no avisa nunca, y `ScrollTrigger.refresh()`
+      al abrir, porque mientras el `body` va con `overflow: hidden` el scroll
+      máximo es cero y ScrollTrigger midió con ese cero
+
+**Lo que costó averiguarlo: el ayudante de precarga de Vite.** Poner `lazy` no
+sirvió de nada al principio, y el HTML seguía precargando `three` y `r3f`. Dos
+capas de causa, una encima de otra:
+
+1. **React acabó dentro del chunk de r3f.** `manualChunks` en su forma de lista
+   de paquetes no llega a `react/jsx-runtime`, que es un fichero aparte dentro
+   del mismo paquete: el chunk de React salía de cero bytes y el runtime de JSX
+   se quedaba con r3f. Como la página necesita React desde el primer momento,
+   arrastraba r3f entero, y r3f arrastra three. Se arregla pasando
+   `manualChunks` a su forma de función.
+2. **Y aun así seguía.** El culpable era `__vitePreload`, la función que Vite
+   inyecta para precargar las dependencias de un `import()` dinámico. Veinte
+   líneas, y Rollup las había puesto dentro del chunk de r3f: la entrada
+   importaba medio mega para llamar a una función. Se arregla asignándole chunk
+   a mano en `manualChunks`, buscando `preload-helper` en el id.
+
+La lección general: **`lazy` no garantiza nada por sí solo.** Hay que mirar los
+`modulepreload` del HTML compilado y los `import` del chunk de entrada, porque
+un solo símbolo compartido basta para volver estático lo que creías diferido.
+
+Y otra vez la misma trampa de siempre: a mitad de la comprobación pareció que la
+runa no se dibujaba —el `stroke-dasharray` congelado en el 0%— y era la ventana
+de Chrome minimizada por las compilaciones. Sin `requestAnimationFrame` no corre
+el ticker de GSAP. Tercera vez.

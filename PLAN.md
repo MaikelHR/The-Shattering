@@ -43,6 +43,7 @@ cinco, la escena deja de leerse como maqueta aunque no sea fotorrealista.
 | Terreno continuo, hierba, piedras, ruinas | ✅ |
 | Nueve capítulos y el recorrido de cámara | ✅ |
 | Los cambios de color del mundo (podredumbre, incendio) | ✅ |
+| La entrada: runa, destello y carga diferida | ✅ |
 | El mundo alrededor: la capital, el cielo | ⏳ replanteado, ver abajo |
 | Atmósfera viva: hojas, ceniza, sonido | ⏳ |
 | GSAP a fondo: la entrada, la Fractura, el texto | ⏳ |
@@ -53,7 +54,7 @@ medias:
 
 | | |
 |---|---|
-| La runa dibujándose en la entrada y el destello que abre el mundo | ⏳ |
+| La runa dibujándose en la entrada y el destello que abre el mundo | ✅ |
 | El Árbol con los rayos entre las ramas y las hojas cayendo | ½ (los rayos existen pero flojos; no hay hojas) |
 | La Fractura pinneada: la grieta, el golpe, el color que se va | ⏳ |
 | El descenso a las raíces, con la luz encendida abajo | ✅ |
@@ -98,14 +99,12 @@ de eso, lo que arregla un número medido antes que lo que añade.
 Las tres tocan lo mismo (cómo carga la página y cómo se mide el scroll), así que
 van juntas o hay que verificar dos veces.
 
-- [ ] **`React.lazy` para todo el mundo 3D.** Hoy el bundle son **559 KB gzip
-      contra un presupuesto de 450**, y hasta que llega y compila los shaders la
-      pantalla está en negro. El HTML y el texto se sirven de inmediato; el
-      motor llega detrás.
-- [ ] **El preloader.** Una runa dorada que se dibuja sola con DrawSVG sobre
-      negro mientras `useProgress` carga. Al 100%, la runa se expande, un
-      destello blanco dorado cubre la pantalla y se disuelve. Dos segundos, y
-      marca el tono de todo lo que sigue. Es el primero de los cinco momentos.
+- [x] **`React.lazy` para todo el mundo 3D.** Lo que bloquea el primer pintado
+      pasa de 549 a **118 KB gzip**, y el primer pintado a 84 ms. El total no
+      baja —los bytes son los mismos—, pero el texto ya no espera al motor.
+- [x] **El preloader.** Una runa dorada —el Anillo partido con el Árbol
+      dentro— que se dibuja sola con DrawSVG sobre negro, y un destello que
+      abre el mundo. El primero de los cinco momentos.
 - [ ] **ScrollSmoother**, y decidir con honestidad si suma o marea. Cambia la
       sensación de la página entera más que cualquier otra cosa de la lista.
       Requiere `#smooth-wrapper > #smooth-content`, con lo fijo (canvas, riel,
@@ -235,14 +234,19 @@ Vale tanto como la lista de arriba: son decisiones tomadas, no olvidos.
 
 | Concepto | Al empezar | Hoy | Objetivo |
 |---|---|---|---|
-| JS (gzip) | 345 KB | **559 KB** | < 450 KB |
+| **JS que bloquea el primer pintado** (gzip) | 345 KB | **118 KB** | < 200 KB |
+| JS total (gzip) | 345 KB | 549 KB | — |
+| Primer pintado | — | 84 ms (local) | < 2,5 s en conexión buena |
 | Imágenes | 0 | 965 KB (dos texturas de roca) | < 1,5 MB |
 | Audio | 0 | 0 | < 250 KB |
 | fps | — | 180 (Radeon RX 7600) | > 60 |
 | Alto de la página | — | 16,6 pantallas | — |
 
-**El JS se pasa del presupuesto** y hay que devolverlo. Casi todo el exceso es el
-postprocesado. La solución no es quitar efectos sino el paso 1.
+El presupuesto pasa a medir **lo que bloquea el primer pintado**, que es lo que
+de verdad se nota, y no el total. Antes eran lo mismo porque todo llegaba junto;
+desde la carga diferida, el motor 3D (431 KB gzip entre three, r3f y el
+postprocesado) baja por detrás mientras la runa se dibuja. Quitar efectos para
+bajar el total sería pagar calidad por un número que ya nadie espera.
 
 Todo lo nuevo respeta `prefers-reduced-motion`: sin ScrollSmoother, sin
 partículas, sin cursor propio, texto directo.

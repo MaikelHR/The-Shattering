@@ -1,5 +1,5 @@
-import { Suspense, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Suspense, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer, PerformanceMonitor, Sparkles, Stars } from '@react-three/drei';
 import { NoToneMapping } from 'three';
 import type { Mesh } from 'three';
@@ -24,6 +24,27 @@ import type { Quality } from './quality';
 const HAZE = '#232617';
 
 /**
+ * Avisa a la entrada de que el mundo ya está.
+ *
+ * Cuenta frames y no montajes a propósito. Montar solo significa que React
+ * puso los componentes: los shaders todavía no se compilaron, y eso ocurre
+ * la primera vez que cada material se dibuja. Levantar la entrada ahí deja
+ * ver un tirón de medio segundo. Con tres frames, ya está todo compilado.
+ *
+ * Va dentro del `Suspense` de las texturas, así que ni siquiera monta hasta
+ * que estas han cargado.
+ */
+function Ready({ onReady }: { onReady: () => void }) {
+  const left = useRef(3);
+  useFrame(() => {
+    if (left.current <= 0) return;
+    left.current -= 1;
+    if (left.current === 0) onReady();
+  });
+  return null;
+}
+
+/**
  * El mundo vive en un canvas fijo detrás del texto.
  * No scrollea: lo que se mueve es la cámara, conducida por GSAP.
  *
@@ -34,7 +55,7 @@ const HAZE = '#232617';
  * archivo de varios megas y el color se ajusta a mano. Se renderiza una
  * sola vez (`frames={1}`) y queda cacheado.
  */
-export default function World({ reduced }: { reduced: boolean }) {
+export default function World({ reduced, onReady }: { reduced: boolean; onReady: () => void }) {
   const [quality, setQuality] = useState<Quality>(detectQuality);
   const [sun, setSun] = useState<Mesh | null>(null);
   const q = QUALITY[quality];
@@ -83,6 +104,7 @@ export default function World({ reduced }: { reduced: boolean }) {
           <Terrain />
           <Rocks density={q.particles} />
           <Ruins density={q.particles} />
+          <Ready onReady={onReady} />
         </Suspense>
         <Grass reduced={reduced} density={q.particles} />
         <Erdtree reduced={reduced} shadowMap={q.shadowMap} />
