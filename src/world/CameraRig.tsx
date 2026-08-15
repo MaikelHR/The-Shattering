@@ -2,9 +2,56 @@ import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
 import type { PerspectiveCamera } from 'three';
+import gsap from 'gsap';
+import { CustomEase } from 'gsap/CustomEase';
 import { BEATS } from '../story';
 import { groundHeight } from './terrain/heightfield';
 import { scrollState, damp, clamp, lerp, decayVelocity } from '../scrollState';
+
+gsap.registerPlugin(CustomEase);
+
+/**
+ * LA CURVA DEL VIAJE
+ * ------------------------------------------------------------
+ * Cómo se reparte el trayecto entre una estación y la siguiente. Interpolar
+ * derecho parece lo natural y tiene dos problemas medidos:
+ *
+ *  - **El recorrido es una polilínea, y los codos son duros.** Al pasar por
+ *    la estación 2 la trayectoria gira 159 grados, por la 8 gira 153 y por la
+ *    15, 148. La mediana de los dieciocho codos es de 73 grados. En recto, la
+ *    cámara llega a toda velocidad, cambia de sentido en un frame y sale a
+ *    toda velocidad: es el movimiento de un robot, no el de alguien que
+ *    conduce una cámara.
+ *  - **Los tramos no miden lo mismo.** El más largo son 67 unidades y el más
+ *    corto 4,6: catorce veces y media. En recto, la velocidad salta esa misma
+ *    proporción justo al cruzar la estación.
+ *
+ * La curva frena antes de cada estación y sale despacio de ella, así que las
+ * dos cosas pasan cuando la cámara casi no se mueve. Y hay un tercer motivo,
+ * el que de verdad importa: **una estación es donde el capítulo queda centrado
+ * y el lector está leyendo.** Ahí la cámara tiene que estar quieta. En recto,
+ * el momento de leer no se distingue de ningún otro.
+ *
+ * Sale 0,45× y llega a 0,20×, con un pico de 1,31× en el medio. Medido sobre
+ * el recorrido entero: el salto de velocidad al cruzar una estación baja de
+ * 51 a 27 unidades por estación —la mitad— a cambio de un pico un 31% más
+ * alto en mitad del tramo. Apretarla más sigue bajando el salto (con una
+ * curva dura, a 10) pero el pico se va a 107 y entonces el tramo se cruza de
+ * un tirón, que es cambiar un problema por otro peor.
+ *
+ * No llega a cero en ningún punto a propósito: una cámara que se para del
+ * todo en cada estación se siente rota, no coreografiada.
+ *
+ * Ojo con lo que CustomEase hace acá: no anima nada. `create()` devuelve la
+ * función de la curva y la llamamos a mano dentro del bucle de render. Es
+ * GSAP prestándonos la matemática, no conduciendo la escena — el puente sigue
+ * siendo el mismo objeto mutable de siempre. Y se usa el plugin en vez de diez
+ * líneas de Bézier por un motivo práctico: la curva es un trazado SVG, que es
+ * exactamente lo que escupe el visualizador de easings de GSAP. Se ajusta a
+ * ojo arrastrando los tiradores y se pega acá, que es como se afina algo que
+ * solo se puede juzgar mirándolo.
+ */
+const travel = CustomEase.create('camara', 'M0,0 C0.4,0.18 0.75,0.95 1,1');
 
 /** Cuántos grados se abre el lente scrolleando a fondo. 0 lo desactiva. */
 const FOV_KICK = 3.5;
@@ -69,7 +116,10 @@ export default function CameraRig({ reduced }: { reduced: boolean }) {
     const pos = clamp(scrollState.position, 0, last);
     const i = Math.max(0, Math.min(last - 1, Math.floor(pos)));
     const next = BEATS[Math.min(last, i + 1)];
-    const f = pos - i;
+    // La curva se aplica una sola vez y de ella salen posición, mirada y
+    // corrimiento de composición: si cada una llevara su propio reparto, el
+    // encuadre dejaría de ser el que se escribió en story.ts.
+    const f = travel(pos - i);
 
     // Interpolamos entre el capítulo i y el siguiente
     tmpA.current.set(...BEATS[i].camera);

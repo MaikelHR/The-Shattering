@@ -47,8 +47,9 @@ cinco, la escena deja de leerse como maqueta aunque no sea fotorrealista.
 | La Fractura, clavada en pantalla | ✅ |
 | El mundo alrededor: la capital, el cielo | ✅ |
 | Atmósfera viva: hojas, ceniza, sonido | ✅ |
-| GSAP a fondo: la entrada, la Fractura, el texto | ⏳ |
-| Interacción y publicación | ⏳ |
+| GSAP a fondo: la entrada, la Fractura, el texto | ✅ |
+| El remate: el mapa final y el vuelo libre | ⏳ |
+| Publicar | ⏳ |
 
 De **los cinco momentos que la gente iba a recordar**, va uno hecho y otro a
 medias:
@@ -170,15 +171,22 @@ Lo que la fase C venía a tapar, hecho con geometría.
       Cero kilobytes contra los ciento cincuenta que costaría un bucle en opus.
       Arranca apagado siempre.
 
-### 5 · El texto y el remate
+### 5 · El texto
 
-- [ ] **SplitText por líneas** con `autoSplit`, que vuelve a partir cuando cambia
-      el ancho o cargan las fuentes. Hoy parte por palabras y no se re-parte.
-- [ ] **Stagger direccional**: el texto del bloque derecho entra desde la derecha.
-- [ ] **ScrambleText en los nombres propios** (Marika, Godrick, Radahn, Miquella)
-      cuando entran. Sutil, y muy soulslike.
-- [ ] **CustomEase para la cámara**: una curva propia, más lenta al principio y
-      con frenada larga. Es lo que separa «animado» de «coreografiado».
+- [x] **SplitText por líneas** con `autoSplit`. Una línea es una unidad de
+      lectura; una palabra suelta no significa nada. Y se vuelve a partir
+      cuando cambia el ancho o cargan las fuentes.
+- [x] **Entrada direccional**: el texto entra por el lado en el que vive el
+      bloque. Uno a la derecha que entrara desde la izquierda cruzaría la
+      pantalla entera para llegar a su sitio.
+- [x] **ScrambleText en los nombres** de los semidioses y su madre, y en nada
+      más: si se revuelve todo, revolver no dice nada.
+- [x] **CustomEase para la cámara.** Medida: el salto de velocidad al cruzar
+      una estación baja de 51 a 27 unidades. Los codos del recorrido llegan a
+      159 grados y en recto se tomaban a toda velocidad.
+
+### 6 · El remate
+
 - [ ] **El mapa final con DrawSVG.** Un mapa de las Tierras Intermedias que se
       dibuja trazo a trazo atado al scroll, con los nueve puntos encendiéndose en
       orden. Cierra el recorrido y da una razón para llegar al final.
@@ -188,7 +196,7 @@ Lo que la fase C venía a tapar, hecho con geometría.
       pulsarlas abren un panel con el lore. Requiere raycasting, y por eso hay
       que dejar pasar el clic hacia el canvas donde haga falta.
 
-### 6 · Publicar
+### 7 · Publicar
 
 - [ ] **Móvil de verdad.** Es la superficie menos probada. Ya salieron dos fallos
       graves de mirarla una vez (ver BITACORA 0.5), así que conviene mirarla
@@ -234,7 +242,7 @@ Vale tanto como la lista de arriba: son decisiones tomadas, no olvidos.
 
 | Concepto | Al empezar | Hoy | Objetivo |
 |---|---|---|---|
-| **JS que bloquea el primer pintado** (gzip) | 345 KB | **127 KB** | < 200 KB |
+| **JS que bloquea el primer pintado** (gzip) | 345 KB | **135 KB** | < 200 KB |
 | JS total (gzip) | 345 KB | 560 KB | — |
 | Primer pintado | — | 84 ms (local) | < 2,5 s en conexión buena |
 | Imágenes | 0 | 965 KB (dos texturas de roca) | < 1,5 MB |
@@ -244,9 +252,14 @@ Vale tanto como la lista de arriba: son decisiones tomadas, no olvidos.
 
 El presupuesto pasa a medir **lo que bloquea el primer pintado**, que es lo que
 de verdad se nota, y no el total. Antes eran lo mismo porque todo llegaba junto;
-desde la carga diferida, el motor 3D (431 KB gzip entre three, r3f y el
+desde la carga diferida, el motor 3D (428 KB gzip entre three, r3f y el
 postprocesado) baja por detrás mientras la runa se dibuja. Quitar efectos para
 bajar el total sería pagar calidad por un número que ya nadie espera.
+
+Los ocho kilobytes que subió el primer pintado son ScrambleText y CustomEase:
+caen en el trozo de GSAP, y ese lo carga la entrada aunque la cámara sea lo
+único que use la curva. Separarlos ahorraría dos kilobytes a cambio de una
+petición más, que no compensa.
 
 Todo lo nuevo respeta `prefers-reduced-motion`: sin ScrollSmoother, sin
 partículas, sin cursor propio, texto directo.

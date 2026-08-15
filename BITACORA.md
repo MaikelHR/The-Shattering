@@ -535,3 +535,68 @@ Ahora, si nace suspendido, se queda esperando el primer gesto para despertarlo.
 **Lo que no puedo comprobar: cómo suena.** Puedo verificar que el grafo se
 construye, que el botón alterna, que la elección persiste y que no hay errores;
 oírlo, no. Los niveles van conservadores por eso.
+
+---
+
+### 0.12 · El texto, coreografiado — 15 de agosto
+
+- [x] **SplitText por líneas** con `autoSplit`, en vez de por palabras
+- [x] **Entrada direccional**: el texto entra por el lado en el que vive
+- [x] **ScrambleText en los nombres** de los semidioses
+- [x] **CustomEase para la cámara**, medida contra los codos del recorrido
+
+**Por líneas y no por palabras.** Una línea es una unidad de lectura; una
+palabra suelta no significa nada. El cambio obliga a `autoSplit`, porque las
+líneas dependen del ancho y de la fuente: un título partido con la fuente del
+sistema se queda con los cortes de esa fuente cuando llega la buena, y al girar
+un teléfono quedan líneas de una sola palabra.
+
+Y `autoSplit` trae su propia trampa. `onSplit` vuelve a correr en cada
+re-partición, y esas pasadas ocurren **fuera del contexto de `useGSAP`**, donde
+un selector como `'.chapter__label'` deja de estar limitado a esta sección y
+alcanza a las dieciocho de la página. Es la misma trampa de la sesión 0.1 con
+SplitText, con otra puerta de entrada: ahora todo se resuelve a elementos antes
+de construir nada. Comprobado con doce re-particiones seguidas: 31 disparadores
+de ScrollTrigger antes, 31 después. `split.revert()` mata la timeline vieja con
+su disparador dentro, así que no se acumulan.
+
+**Las máscaras recortan por el borde del relleno.** Con `line-height: 1.04`, el
+recorte cae justo encima de la línea de base y la «j» de «bajo» se queda sin
+cola. Se le da aire por los cuatro lados y se compensa con margen negativo: el
+recorte se abre y el hueco del título no cambia. Y hace falta darle una clase
+propia a las líneas, porque sin `linesClass` las líneas salen sin `class` y las
+máscaras que GSAP les pone encima también: no hay de dónde agarrarlas.
+
+**El fallo que encontré escribiendo esto: un nombre revuelto se anuncia.**
+Mientras dura el efecto el texto del documento dice «Godkifw», y eso es lo que
+lee un lector de pantalla si le toca el párrafo en ese segundo. Ahora cada
+nombre va dos veces: el que se revuelve lleva `aria-hidden` y al lado hay una
+copia quieta que solo existe para quien escucha. Comprobado recorriendo el
+árbol en pleno revuelto: en pantalla «Godkifw», anunciado «Godrick». El precio
+es que copiar el párrafo duplica el nombre, y es más barato que anunciar una
+palabra que no existe.
+
+De paso, el revuelto cambia el ancho de la palabra —las letras que entran son
+otras y más angostas— y sin fijarlo el párrafo entero tiembla. Se le fija el
+ancho durante el efecto y se suelta al terminar.
+
+**La curva de cámara salió de medir, no de gusto.** El recorrido es una
+polilínea y los codos son duros: al pasar por la estación 2 la trayectoria gira
+**159 grados**, por la 8 gira 153 y por la 15, 148, con una mediana de 73. Y los
+tramos no miden lo mismo: el más largo son 67 unidades y el más corto 4,6,
+catorce veces y media. Interpolando en recto, la cámara llega a toda velocidad,
+cambia de sentido en un frame y sale a toda velocidad.
+
+La curva elegida sale a 0,45× y llega a 0,20×. Medido sobre el recorrido
+entero, el salto de velocidad al cruzar una estación baja **de 51 a 27 unidades
+por estación** a cambio de un pico un 31% más alto en mitad del tramo. Probé
+apretarla más: con una curva dura el salto baja a 10, pero el pico se va a 107 y
+el tramo se cruza de un tirón. Cambiar un problema por otro peor.
+
+Y hay un tercer motivo que es el que de verdad importa: **una estación es donde
+el capítulo queda centrado y el lector está leyendo.** Ahí la cámara tiene que
+estar quieta.
+
+**Lo que se paga:** el primer pintado sube de 127 a 135 KB gzip. Son
+ScrambleText y CustomEase, que caen en el trozo de GSAP y ese lo carga la
+entrada. Sigue muy por debajo del techo de 200.

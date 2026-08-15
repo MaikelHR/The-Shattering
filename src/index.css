@@ -377,6 +377,39 @@ body:has(.preloader) {
   color: #f6ecd8;
 }
 
+/* Las líneas del título suben desde detrás de una máscara, y una máscara
+   recorta por el borde del relleno. Con line-height 1.04 el recorte cae justo
+   encima de la línea de base: la «j» de «bajo» se quedaba sin cola y la «Á»
+   sin tilde. Se le da aire por los cuatro lados y se compensa con margen
+   negativo, así el recorte se abre y el hueco del título no cambia. */
+.chapter__linea-mask {
+  padding: 0.1em 0.08em 0.16em;
+  margin: -0.1em -0.08em -0.16em;
+}
+
+/* Los nombres propios se revuelven al entrar (ver Chapter.tsx). Va en bloque
+   en línea para poder fijarle el ancho mientras dura el revuelto. */
+.chapter__nombre {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* La copia quieta de cada nombre, la que se anuncia. Fuera de la vista pero
+   dentro del documento: `display: none` o `visibility: hidden` la sacarían
+   también del árbol de accesibilidad, que es justo lo contrario de lo que
+   hace falta acá. */
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .chapter__body p {
   margin: 0 0 14px;
   font-size: clamp(15px, 1.7vw, 17px);

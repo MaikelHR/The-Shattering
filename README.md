@@ -10,7 +10,8 @@ las raíces encendidas bajo la capital, la ciudad que lleva mil años cayéndose
 el otro árbol que no llegó a florecer, la llama que hay que prender, y el Sinluz
 que llega después.
 
-**Stack:** React 19 · TypeScript · Vite · Three.js (React Three Fiber) · GSAP ScrollTrigger + SplitText
+**Stack:** React 19 · TypeScript · Vite · Three.js (React Three Fiber) · GSAP
+(ScrollTrigger, ScrollSmoother, SplitText, DrawSVG, ScrambleText, CustomEase)
 
 Cero backend, cero API keys, cero costo. Todo estático.
 
@@ -89,7 +90,7 @@ src/
 ├── scrollState.ts       # el puente GSAP ⇄ 3D + utilidades (lerp, damp)
 ├── index.css            # paleta, tipografía, capas
 ├── components/
-│   ├── Chapter.tsx       # sección con revelados de SplitText
+│   ├── Chapter.tsx       # sección: título por líneas, entrada direccional, nombres
 │   ├── ChapterRail.tsx   # riel de capítulos (elemento de firma)
 │   ├── Preloader.tsx     # la runa que se dibuja y el destello que abre
 │   ├── Fracture.tsx      # el pin, la grieta y el golpe del capítulo II
@@ -162,6 +163,14 @@ entonces la decisión de quemarlo todo.
   `querySelectorAll` sobre el documento entero: con un selector, cada capítulo
   terminaba partiendo los cinco títulos de la página. Por eso `Chapter.tsx` le pasa
   el elemento por ref.
+- Y hay una segunda puerta al mismo problema: con `autoSplit`, el `onSplit` de
+  SplitText vuelve a correr cuando cambia el ancho o cargan las fuentes, y esas
+  pasadas ocurren **fuera** del contexto de `useGSAP`. Ahí un selector deja de
+  estar limitado y alcanza a las dieciocho secciones. Por eso el capítulo
+  resuelve todo a elementos antes de construir la timeline.
+- `CustomEase` en `CameraRig.tsx` **no anima nada**: `create()` devuelve la
+  función de la curva y se la llama a mano dentro del bucle de render. Es GSAP
+  prestando la matemática, no conduciendo la escena.
 - `damp()` en vez de `lerp()` crudo: hace el suavizado independiente del framerate.
   La única vez que la cámara no suaviza es el primer frame, donde se planta directo
   en su sitio para que una recarga a mitad de historia no empiece con un viaje.

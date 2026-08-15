@@ -232,6 +232,28 @@ export const CHAPTERS = BEATS.map((beat, index) => ({ ...beat.chapter, index }))
 );
 
 /**
+ * Los nombres que se revuelven al aparecer.
+ *
+ * Son los semidioses y su madre, y nada más. La tentación es marcar también
+ * los lugares —Caelid, las Tierras Intermedias— y ahí el efecto deja de
+ * significar algo y pasa a ser un tic: si se revuelve todo, revolver no dice
+ * nada. Así marcan exactamente a los que rompieron el mundo, y cinco de los
+ * nueve capítulos no llevan ninguno.
+ *
+ * Van sin acentos a propósito: el `\b` de la expresión regular que los busca
+ * no se lleva bien con los caracteres acentuados.
+ */
+export const NOMBRES = [
+  'Marika',
+  'Godrick',
+  'Rykard',
+  'Morgott',
+  'Malenia',
+  'Radahn',
+  'Miquella',
+];
+
+/**
  * De qué lado de la pantalla va cada capítulo, alternando.
  *
  * Se cuenta por capítulo y no por estación: los respiros no están
