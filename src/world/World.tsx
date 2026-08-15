@@ -15,6 +15,7 @@ import BrokenRing from './BrokenRing';
 import Roots from './Roots';
 import Leaves from './Leaves';
 import CameraRig from './CameraRig';
+import FreeFlight from './FreeFlight';
 import Sky from './Sky';
 import Atmosphere from './Atmosphere';
 import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
@@ -57,7 +58,14 @@ function Ready({ onReady }: { onReady: () => void }) {
  * archivo de varios megas y el color se ajusta a mano. Se renderiza una
  * sola vez (`frames={1}`) y queda cacheado.
  */
-export default function World({ reduced, onReady }: { reduced: boolean; onReady: () => void }) {
+interface WorldProps {
+  reduced: boolean;
+  /** La cámara está suelta: la lleva el visitante, no el scroll. */
+  libre: boolean;
+  onReady: () => void;
+}
+
+export default function World({ reduced, libre, onReady }: WorldProps) {
   const [quality, setQuality] = useState<Quality>(detectQuality);
   const [sun, setSun] = useState<Mesh | null>(null);
   const q = QUALITY[quality];
@@ -158,7 +166,11 @@ export default function World({ reduced, onReady }: { reduced: boolean; onReady:
             cuanto la cámara se iba de ahí. Estas envuelven a la cámara. */}
         <Leaves reduced={reduced} density={q.particles} />
 
-        <CameraRig reduced={reduced} />
+        {/* Los dos conviven en el árbol pero nunca conducen a la vez: el rig
+            se aparta mientras `libre` está puesto, y los controles solo
+            existen mientras lo está. */}
+        <CameraRig reduced={reduced} libre={libre} />
+        {libre && <FreeFlight reduced={reduced} />}
         <Post sun={sun} quality={quality} reduced={reduced} />
       </Canvas>
     </div>

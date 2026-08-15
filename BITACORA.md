@@ -600,3 +600,83 @@ estar quieta.
 **Lo que se paga:** el primer pintado sube de 127 a 135 KB gzip. Son
 ScrambleText y CustomEase, que caen en el trozo de GSAP y ese lo carga la
 entrada. Sigue muy por debajo del techo de 200.
+
+---
+
+### 0.13 · El mapa y la cámara suelta — 15 de agosto
+
+- [x] **El mapa final**, dibujándose con DrawSVG atado al scroll
+- [x] **Los nueve puntos**, encendiéndose cuando el trazo los alcanza
+- [x] **Vuelo libre** con controles orbitales limitados
+
+Con esto quedan hechos **los cinco momentos** que la página se propuso tener.
+
+**El mapa está en las coordenadas del mundo 3D.** El Árbol al norte, la
+capital a sus pies con la misma curva de muralla que en la escena, el este
+podrido, el barranco a cuarenta y siete del centro, la ciudad que flota al sur
+y el otro árbol al suroeste: todo pasado por una sola proyección, que es mirar
+el mundo desde arriba. No es una ilustración que se parece al mundo; es el
+mundo visto de otra manera. La cordillera y las manchas se generan con ruido
+estable —nada de `Math.random`, que un mapa que cambia de forma al recargar no
+es un mapa— y el marco es el Anillo, roto en tres arcos, con el hueco más
+ancho justo encima del Árbol.
+
+**Dónde ocurre cada capítulo se escribe a mano, y hubo que razonarlo.** Lo
+primero que probé fue sacarlo de los datos que ya existen, y no sale de
+ninguno de los dos:
+
+- De `camera`, no: la cámara casi no se mueve del centro de la llanura en toda
+  la crónica —lo que cambia es hacia dónde mira—, así que el mapa habría sido
+  un garabato de setenta unidades en un mundo de cuatrocientas.
+- De `lookAt`, tampoco: es un punto cualquiera de la línea de mira, puesto a
+  la distancia que hiciera falta para encuadrar, no donde están las cosas.
+
+Así que `place` es un campo más de `story.ts`, al lado del texto, porque es lo
+mismo que el texto: dónde pasa lo que se cuenta.
+
+**Los puntos se encienden siguiendo el trazo.** Un `stagger` normal reparte el
+tiempo por igual entre los nueve, y los tramos miden cosas muy distintas —del
+barranco a Farum Azula hay cinco veces más que del Árbol a la capital—, así que
+el punto se encendía con la línea a medio camino, o mucho después de haber
+pasado. Ahora cada uno tiene su instante, sacado de la longitud acumulada. Y
+esa longitud se mide muestreando las curvas y no en línea recta entre puntos:
+la curva es más larga que la recta y el sobrante se acumula tramo a tramo.
+
+**La ruta va curvada.** Con segmentos rectos los nueve puntos se leen como un
+polígono, y un polígono es una figura, no un camino.
+
+**El vuelo libre: el punto de giro es la única decisión que importa.** Lo obvio
+—girar alrededor del centro de la llanura, que es donde el lector estuvo todo
+el rato— sale mal, y se puede calcular por qué. El Árbol mide casi doscientas
+unidades y está a ciento setenta y ocho al norte: desde el suelo, su copa queda
+a treinta y cinco grados de altura. Mirando al centro de la llanura, que está a
+cero grados, la copa se sale del cuadro por arriba —el lente abre cuarenta y
+cinco, o sea veintidós y medio hacia arriba— y lo que queda es un descampado
+con montañas al fondo. Fue exactamente lo que se vio en la primera prueba.
+
+El punto de giro va a cuarenta de altura y setenta hacia el Árbol. Desde ahí la
+mirada sube dieciséis grados, que es lo que hacen los encuadres escritos —la
+última estación sube diecisiete y medio—, el Árbol entra entero y, de regalo,
+la transición al soltar la cámara no se ve: la deja mirando casi adonde ya
+estaba mirando.
+
+**El techo del ángulo polar se recalcula en cada frame.** Es el ángulo al que
+la cámara toca el suelo, y depende de lo lejos que esté: un valor fijo o la
+deja flotando a treinta unidades cuando está cerca, o la mete bajo tierra
+cuando está lejos.
+
+**Dos trampas de esta sesión:**
+
+*La rueda del ratón hacía dos cosas a la vez.* Los eventos del canvas se
+escuchan en `document.body` —el texto está encima y lo tapa—, y los controles
+orbitales heredaban ese destino. Ahí Chrome trata la rueda como pasiva, el
+`preventDefault` no vale, y acercar la cámara bajaba también la página: al
+volver, el visitante habría aparecido en el colofón sin haber ido a ninguna
+parte. Pasándoles el canvas como `domElement`, el `preventDefault` funciona.
+
+*Y la de siempre, otra vez.* Media hora persiguiendo un mapa que no se dibujaba
+y un mundo en negro, hasta comprobar `document.visibilityState`: la ventana de
+Chrome estaba minimizada, el `requestAnimationFrame` congelado y con él el
+reloj de GSAP, así que la timeline se quedaba en el fotograma cero —donde todo
+está invisible a propósito. Es la cuarta vez. El síntoma que la delata es que
+un `evaluate` que espera un frame no vuelve nunca.

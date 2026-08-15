@@ -40,6 +40,21 @@ export interface Chapter {
   title: string;
   /** Uno o dos párrafos. */
   body: string[];
+  /**
+   * Dónde OCURRE el capítulo, en coordenadas del mundo (x, z), para el mapa
+   * del final.
+   *
+   * No sale de `camera` ni de `lookAt`, y no es un descuido. La cámara casi
+   * no se mueve del centro de la llanura en toda la crónica: lo que cambia es
+   * hacia dónde mira. Un mapa hecho con las posiciones de cámara sería un
+   * garabato de setenta unidades en un mundo de cuatrocientas. Y `lookAt` es
+   * un punto cualquiera de la línea de mira, no el sitio: está a la distancia
+   * que hiciera falta para encuadrar, no donde están las cosas.
+   *
+   * Así que esto se escribe a mano, como el texto, porque es lo mismo que el
+   * texto: dónde pasa lo que se cuenta.
+   */
+  place: [number, number];
 }
 
 export interface Beat {
@@ -66,6 +81,7 @@ export const BEATS: Beat[] = [
     frame: -14,
     chapter: {
       rune: 'I',
+      place: [-58, -132], // al pie del Árbol, al norte del todo
       label: 'La Orden',
       title: 'Todo estaba bajo el Árbol',
       body: [
@@ -84,6 +100,7 @@ export const BEATS: Beat[] = [
     frame: 10,
     chapter: {
       rune: 'II',
+      place: [-52, -102], // sobre la capital, que es donde se rompió
       label: 'La Fractura',
       title: 'Y Marika lo rompió',
       body: [
@@ -102,6 +119,7 @@ export const BEATS: Beat[] = [
     frame: -12,
     chapter: {
       rune: 'III',
+      place: [-16, -22], // las ruinas repartidas por la llanura
       label: 'Los Semidioses',
       title: 'Lo que quedó de los hijos',
       body: [
@@ -120,6 +138,7 @@ export const BEATS: Beat[] = [
     frame: 9,
     chapter: {
       rune: 'IV',
+      place: [116, -18], // el este podrido
       label: 'Caelid',
       title: 'El este se pudrió',
       body: [
@@ -138,6 +157,7 @@ export const BEATS: Beat[] = [
     frame: 5,
     chapter: {
       rune: 'V',
+      place: [50, 34], // el barranco, que corre de norte a sur
       label: 'Las raíces',
       title: 'Abajo sigue encendido',
       body: [
@@ -156,6 +176,7 @@ export const BEATS: Beat[] = [
     frame: -33,
     chapter: {
       rune: 'VI',
+      place: [30, 172], // la ciudad que flota, al sur
       label: 'Farum Azula',
       title: 'Ninguna orden fue la primera',
       body: [
@@ -174,6 +195,7 @@ export const BEATS: Beat[] = [
     frame: 15,
     chapter: {
       rune: 'VII',
+      place: [-138, 80], // el otro árbol, al suroeste
       label: 'El Árbol Sagrado',
       title: 'El otro árbol',
       body: [
@@ -194,6 +216,7 @@ export const BEATS: Beat[] = [
     frame: 20,
     chapter: {
       rune: 'VIII',
+      place: [40, -148], // el Árbol otra vez, ardiendo
       label: 'La Llama',
       title: 'Hay que quemar el Árbol',
       body: [
@@ -212,6 +235,7 @@ export const BEATS: Beat[] = [
     frame: -10,
     chapter: {
       rune: 'IX',
+      place: [-6, 26], // donde uno se queda al final
       label: 'El Sinluz',
       title: 'La Gracia señala, no promete',
       body: [

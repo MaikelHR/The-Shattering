@@ -48,11 +48,11 @@ cinco, la escena deja de leerse como maqueta aunque no sea fotorrealista.
 | El mundo alrededor: la capital, el cielo | ✅ |
 | Atmósfera viva: hojas, ceniza, sonido | ✅ |
 | GSAP a fondo: la entrada, la Fractura, el texto | ✅ |
-| El remate: el mapa final y el vuelo libre | ⏳ |
+| El remate: el mapa final y el vuelo libre | ✅ |
+| Puntos calientes con el lore | ⏳ |
 | Publicar | ⏳ |
 
-De **los cinco momentos que la gente iba a recordar**, va uno hecho y otro a
-medias:
+**Los cinco momentos que la gente iba a recordar están todos hechos:**
 
 | | |
 |---|---|
@@ -60,7 +60,7 @@ medias:
 | El Árbol con los rayos entre las ramas y las hojas cayendo | ✅ |
 | La Fractura pinneada: la grieta, el golpe, el color que se va | ✅ |
 | El descenso a las raíces, con la luz encendida abajo | ✅ |
-| El mapa que se dibuja solo al final, y la cámara que te sueltan | ⏳ |
+| El mapa que se dibuja solo al final, y la cámara que te sueltan | ✅ |
 
 ---
 
@@ -187,11 +187,17 @@ Lo que la fase C venía a tapar, hecho con geometría.
 
 ### 6 · El remate
 
-- [ ] **El mapa final con DrawSVG.** Un mapa de las Tierras Intermedias que se
-      dibuja trazo a trazo atado al scroll, con los nueve puntos encendiéndose en
-      orden. Cierra el recorrido y da una razón para llegar al final.
-- [ ] **Vuelo libre.** Después del mapa, la cámara se suelta con OrbitControls
-      limitados. Que el visitante juegue con el mundo es lo que hace que se quede.
+- [x] **El mapa final con DrawSVG**, y en las coordenadas del mundo 3D: el
+      Árbol al norte, la capital a sus pies con la misma curva de muralla que
+      en la escena, el barranco a cuarenta y siete del centro. No es una
+      ilustración parecida al mundo, es el mundo visto desde arriba. Los nueve
+      puntos se encienden **cuando el trazo los alcanza**, no a intervalos
+      iguales: los tramos miden cosas muy distintas.
+- [x] **Vuelo libre**, con el punto de giro puesto donde el Árbol entra en el
+      cuadro —a cuarenta de altura y setenta al norte— y no en el centro de la
+      llanura, que deja la copa fuera por arriba. El techo del ángulo polar se
+      recalcula en cada frame: es el ángulo al que la cámara toca el suelo, y
+      depende de lo lejos que esté.
 - [ ] **Puntos calientes**: tres o cuatro marcas doradas en la escena que al
       pulsarlas abren un panel con el lore. Requiere raycasting, y por eso hay
       que dejar pasar el clic hacia el canvas donde haga falta.
@@ -242,13 +248,13 @@ Vale tanto como la lista de arriba: son decisiones tomadas, no olvidos.
 
 | Concepto | Al empezar | Hoy | Objetivo |
 |---|---|---|---|
-| **JS que bloquea el primer pintado** (gzip) | 345 KB | **135 KB** | < 200 KB |
-| JS total (gzip) | 345 KB | 560 KB | — |
+| **JS que bloquea el primer pintado** (gzip) | 345 KB | **138 KB** | < 200 KB |
+| JS total (gzip) | 345 KB | 583 KB | — |
 | Primer pintado | — | 84 ms (local) | < 2,5 s en conexión buena |
 | Imágenes | 0 | 965 KB (dos texturas de roca) | < 1,5 MB |
 | Audio | 0 | **0** (sintetizado) | < 250 KB |
 | fps | — | 180 (Radeon RX 7600) | > 60 |
-| Alto de la página | — | 18,1 pantallas | — |
+| Alto de la página | — | 21,6 pantallas | — |
 
 El presupuesto pasa a medir **lo que bloquea el primer pintado**, que es lo que
 de verdad se nota, y no el total. Antes eran lo mismo porque todo llegaba junto;

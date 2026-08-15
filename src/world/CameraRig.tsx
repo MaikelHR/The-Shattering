@@ -95,7 +95,7 @@ const CLEARANCE = 1.6;
  * Ojo: leemos scrollState directamente, sin estado de React.
  * Por eso esto corre a 60fps sin re-renderizar nada.
  */
-export default function CameraRig({ reduced }: { reduced: boolean }) {
+export default function CameraRig({ reduced, libre }: { reduced: boolean; libre: boolean }) {
   const { camera } = useThree();
   const targetPos = useRef(new Vector3(...BEATS[0].camera));
   const targetLook = useRef(new Vector3(...BEATS[0].lookAt));
@@ -104,12 +104,32 @@ export default function CameraRig({ reduced }: { reduced: boolean }) {
   const tmpB = useRef(new Vector3());
   const baseFov = useRef((camera as PerspectiveCamera).fov);
   const settled = useRef(false);
+  const venia = useRef(false);
 
   useFrame((state, delta) => {
     // Este es el único useFrame garantizado en escena, así que acá se
     // apaga la velocidad: ScrollTrigger solo la reporta mientras el
     // scroll se mueve y, al soltar, el último valor quedaría clavado.
     decayVelocity(delta);
+
+    // Mientras la cámara está suelta, este bucle se aparta entero: los
+    // controles orbitales le escriben posición y rotación, y dos manos en el
+    // volante son peor que ninguna.
+    if (libre) {
+      venia.current = true;
+      return;
+    }
+
+    // Y al recuperarla, se recoge la mirada de donde el visitante la dejó.
+    // `currentLook` quedó apuntando a donde miraba la última estación, y
+    // devolvérsela de golpe sería un corte: copiando la dirección real de la
+    // cámara, el regreso al último encuadre es un viaje suave, que además se
+    // ve bien —la cámara vuelve sola a su sitio, como si la llamaran.
+    if (venia.current) {
+      venia.current = false;
+      camera.getWorldDirection(tmpA.current);
+      currentLook.current.copy(camera.position).addScaledVector(tmpA.current, 40);
+    }
 
     const last = BEATS.length - 1;
     // Posición continua dentro de la lista de estaciones: 0 -> last

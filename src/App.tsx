@@ -7,6 +7,7 @@ import Chapter from './components/Chapter';
 import ChapterRail from './components/ChapterRail';
 import Preloader, { PRELOADER_TIMEOUT } from './components/Preloader';
 import Fracture from './components/Fracture';
+import Atlas from './components/Atlas';
 import Ambience from './components/Ambience';
 import { ALIGN, BEATS, CHAPTERS } from './story';
 import { setChapterAnchors, writeScroll } from './scrollState';
@@ -56,6 +57,8 @@ export default function App() {
   const [worldReady, setWorldReady] = useState(false);
   /** La entrada terminó de salir: se puede desmontar y soltar el scroll. */
   const [revealed, setRevealed] = useState(false);
+  /** La cámara está suelta: la lleva el visitante y la crónica espera. */
+  const [libre, setLibre] = useState(false);
   // Se lee en el inicializador, no en un efecto posterior: si arrancara
   // en false, quien pide movimiento reducido vería el primer render
   // animado antes de que la corrección llegue.
@@ -99,6 +102,22 @@ export default function App() {
   useEffect(() => {
     if (revealed) ScrollTrigger.refresh();
   }, [revealed]);
+
+  // ---- El vuelo libre ----
+  // Mientras la cámara está suelta, la página se aparta: el texto se va, el
+  // riel se va y el scroll se detiene. Lo del scroll no es cosmético: sin
+  // pararlo, la rueda del ratón alejaría la cámara Y bajaría la página al
+  // mismo tiempo, y al soltar la cámara el visitante estaría en el colofón
+  // sin haber ido a ninguna parte.
+  useEffect(() => {
+    document.body.classList.toggle('esta-libre', libre);
+    smoother.current?.paused(libre);
+    if (!libre) return;
+    // Escape sale, que es lo que todo el mundo prueba primero.
+    const salir = (e: KeyboardEvent) => e.key === 'Escape' && setLibre(false);
+    window.addEventListener('keydown', salir);
+    return () => window.removeEventListener('keydown', salir);
+  }, [libre]);
 
   // Los capítulos crean sus propios disparadores, y no pueden hacerlo hasta
   // que exista el scroll suavizado: ScrollSmoother cambia el `scroller` por
@@ -240,8 +259,19 @@ export default function App() {
       {/* El fallback va vacío a propósito: lo que se ve mientras tanto es la
           entrada, que está por encima y no depende de este Suspense. */}
       <Suspense fallback={null}>
-        <World reduced={reduced} onReady={() => setWorldReady(true)} />
+        <World reduced={reduced} libre={libre} onReady={() => setWorldReady(true)} />
       </Suspense>
+
+      {libre && (
+        <div className="vuelo">
+          <p className="vuelo__pista">
+            Arrastrá para girar · rueda para acercar
+          </p>
+          <button className="vuelo__volver" type="button" onClick={() => setLibre(false)}>
+            Volver a la crónica
+          </button>
+        </div>
+      )}
 
       {!revealed && (
         <Preloader ready={worldReady} reduced={reduced} onDone={() => setRevealed(true)} />
@@ -290,6 +320,10 @@ export default function App() {
                 reduced={reduced}
               />
             ))}
+
+            {/* El mapa: cierra el recorrido dibujando por dónde se pasó, y
+                de ahí sale la invitación a quedarse dando vueltas. */}
+            <Atlas armed={armed} reduced={reduced} onSoltar={() => setLibre(true)} />
 
             <footer className="colophon">
               <p className="colophon__note">

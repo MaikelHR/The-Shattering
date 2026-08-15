@@ -220,6 +220,7 @@ body:has(.preloader) {
 
 .hero,
 .chapter__inner,
+.atlas__inner,
 .colophon {
   pointer-events: auto;
 }
@@ -422,6 +423,247 @@ body:has(.preloader) {
   color: var(--mute);
 }
 
+/* ---- El mapa del final ---- */
+.atlas {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 0 var(--gutter);
+}
+
+.atlas__inner {
+  /* El mapa es cuadrado, así que el ancho lo manda el alto disponible: hay
+     que dejarle sitio a la etiqueta y al botón sin que la caja se salga. */
+  width: min(66vh, 88vw, 560px);
+  padding: clamp(16px, 2.4vw, 26px);
+  /* El mismo vidrio ahumado que los capítulos, y por el mismo motivo: acá
+     detrás el Árbol está ardiendo, y un mapa de líneas finas de oro sobre un
+     incendio no se lee. Con el panel, además, el mapa se sostiene como una
+     lámina que alguien dejó sobre la mesa, que es lo que es. */
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgba(16, 13, 8, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  text-align: center;
+}
+
+.atlas__label {
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+.atlas__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.atlas__anillo path {
+  stroke: var(--gold);
+  stroke-width: 1.5;
+  opacity: 0.5;
+}
+
+.atlas__llano {
+  stroke: var(--gold);
+  stroke-width: 1;
+  stroke-dasharray: 3 7;
+  opacity: 0.2;
+}
+
+.atlas__monte {
+  stroke: var(--mute);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.atlas__hito path {
+  stroke: var(--gold);
+  stroke-width: 1;
+  opacity: 0.72;
+}
+
+.atlas__halo {
+  fill: rgba(232, 195, 122, 0.07);
+  stroke: none;
+}
+
+.atlas__copa {
+  fill: rgba(232, 195, 122, 0.08);
+}
+
+/* El este, que no se dibuja: se mancha. */
+.atlas__podrido {
+  fill: rgba(156, 64, 48, 0.16);
+  stroke: var(--rot);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.atlas__podrido--dentro {
+  fill: rgba(156, 64, 48, 0.22);
+}
+
+.atlas__rotulo {
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  fill: var(--mute);
+  stroke: none;
+}
+
+.atlas__ruta {
+  stroke: var(--ember);
+  stroke-width: 1.7;
+}
+
+.atlas__punto-aura {
+  stroke: var(--gold);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.atlas__punto-nucleo {
+  fill: var(--gold);
+  stroke: none;
+}
+
+.atlas__numeral {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  fill: var(--gold);
+  stroke: none;
+}
+
+.atlas__soltar {
+  margin-top: 18px;
+  padding: 11px 20px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgba(16, 13, 8, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s;
+}
+
+.atlas__soltar:hover,
+.atlas__soltar:focus-visible {
+  border-color: var(--gold);
+  color: #f6ecd8;
+}
+
+/* ---- El vuelo libre ---- */
+/* Mientras la cámara está suelta, la página se aparta entera. No se
+   desmonta: se apaga. Desmontarla obligaría a ScrollTrigger a remedir las
+   dieciocho anclas al volver, y el visitante aparecería en otro sitio. */
+#smooth-wrapper,
+.rail,
+.progress {
+  transition: opacity 0.55s ease;
+}
+
+body.esta-libre #smooth-wrapper,
+body.esta-libre .rail,
+body.esta-libre .progress {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vuelo {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(16px, 4vh, 40px);
+  /* Va también acá y no solo en el fotograma final: sin animación —con
+     movimiento reducido— no habría nada que centrara la barra. */
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: calc(100vw - 120px);
+  padding: 8px 8px 8px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  /* Girar la cámara es arrastrar, y un arrastre que pasa por encima de un
+     texto lo selecciona: la barra se quedaba resaltada en azul. */
+  user-select: none;
+  -webkit-user-select: none;
+  background: rgba(16, 13, 8, 0.7);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: vuelo-entra 0.7s 0.15s ease both;
+}
+
+@keyframes vuelo-entra {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.vuelo__pista {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+
+.vuelo__volver {
+  flex: none;
+  padding: 9px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s;
+}
+
+.vuelo__volver:hover,
+.vuelo__volver:focus-visible {
+  border-color: var(--gold);
+  color: #f6ecd8;
+}
+
+/* En pantallas angostas la pista sobra: la barra se come el botón del
+   sonido y de todas formas ahí se arrastra con el dedo, no con la rueda. */
+@media (max-width: 620px) {
+  .vuelo__pista {
+    display: none;
+  }
+}
+
 /* ---- Riel de capítulos (elemento de firma) ---- */
 .rail {
   position: fixed;
@@ -603,6 +845,19 @@ body:has(.preloader) {
 
   .rail__link:hover .rail__rune {
     transform: none;
+  }
+
+  /* La barra del vuelo aparece, no entra. Y la página se aparta de golpe:
+     el fundido son seiscientos milisegundos de movimiento que nadie pidió. */
+  .vuelo {
+    animation: none;
+    transform: translateX(-50%);
+  }
+
+  #smooth-wrapper,
+  .rail,
+  .progress {
+    transition: none;
   }
 }
 

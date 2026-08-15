@@ -94,6 +94,7 @@ src/
 │   ├── ChapterRail.tsx   # riel de capítulos (elemento de firma)
 │   ├── Preloader.tsx     # la runa que se dibuja y el destello que abre
 │   ├── Fracture.tsx      # el pin, la grieta y el golpe del capítulo II
+│   ├── Atlas.tsx         # el mapa del final, dibujándose con el scroll
 │   └── Ambience.tsx      # el sonido, sintetizado y apagado por defecto
 └── world/
     ├── World.tsx         # canvas fijo, luces, niebla, calidad
@@ -114,6 +115,7 @@ src/
     ├── BrokenRing.tsx    # el Anillo, que la Fractura parte en tres
     ├── Roots.tsx         # las raíces encendidas, cruzando el barranco
     ├── CameraRig.tsx     # la cámara interpolada por el scroll
+    ├── FreeFlight.tsx    # y la cámara suelta, cuando la crónica termina
     ├── erdtree/branches.ts    # los árboles, generados por recursión
     ├── ruins/
     │   ├── pieces.ts          # la cantería: columna, sillar, dintel
@@ -171,6 +173,13 @@ entonces la decisión de quemarlo todo.
 - `CustomEase` en `CameraRig.tsx` **no anima nada**: `create()` devuelve la
   función de la curva y se la llama a mano dentro del bucle de render. Es GSAP
   prestando la matemática, no conduciendo la escena.
+- El mapa del final está en las coordenadas del mundo 3D, pasadas por una sola
+  proyección: mirar la escena desde arriba. Los nueve puntos se encienden
+  **cuando el trazo los alcanza** —con la longitud acumulada de la ruta, no con
+  un `stagger`—, porque los tramos miden cosas muy distintas.
+- En el vuelo libre, el techo del ángulo polar se recalcula en cada frame: es el
+  ángulo al que la cámara toca el suelo, y depende de lo lejos que esté. Un
+  valor fijo la deja flotando cuando está cerca o bajo tierra cuando está lejos.
 - `damp()` en vez de `lerp()` crudo: hace el suavizado independiente del framerate.
   La única vez que la cámara no suaviza es el primer frame, donde se planta directo
   en su sitio para que una recarga a mitad de historia no empiece con un viaje.
