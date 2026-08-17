@@ -225,9 +225,20 @@ Lo que la fase C venía a tapar, hecho con geometría.
       seis segundos del tope de la entrada y no explicaba nada. Ahora se
       pregunta antes de montar el motor: cero errores, la entrada se abre en
       3,3 s y el hero lleva una nota al pie.
-- [ ] **Lighthouse**: por encima de 90 en accesibilidad; en rendimiento, con esta
-      cantidad de WebGL, apuntar a 75-85 es honesto.
-- [ ] **Deploy en Vercel.**
+- [ ] **Deploy en Vercel.** Todo lo de este lado está listo: `base` desactivado
+      —que es lo correcto para un dominio raíz—, rama limpia, y `npm run build`
+      deja `dist/` con la `og.jpg` dentro. Falta la parte que va contra la
+      cuenta: importar `MaikelHR/The-Shattering` desde vercel.com, que detecta
+      Vite solo y deja cada push a `main` publicando por su cuenta.
+
+      **Y en cuanto exista la URL, dos cosas que no se pueden hacer antes:**
+      - Cambiar `og:image` de `/og.jpg` a la URL completa y añadir `og:url`.
+        Sin esto, Facebook y algún otro rastreador no muestran la imagen del
+        enlace. El recordatorio está en el propio `index.html`.
+      - Pasar **Lighthouse** contra la URL publicada, que es donde el número
+        vale: por encima de 90 en accesibilidad, y en rendimiento, con esta
+        cantidad de WebGL, apuntar a 75-85 es honesto. Los blancos táctiles ya
+        están arreglados, que era lo que iba a marcar.
 - [ ] Un vídeo corto del recorrido para el portafolio.
 - [ ] Un post explicando el puente GSAP ⇄ R3F. Es el tipo de artículo que la
       gente comparte, y demuestra que entendiste el problema.
