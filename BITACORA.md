@@ -751,3 +751,63 @@ Ahora se busca el punto más bajo de la huella y se hunde tres más.
 
 171 fps de media, 60 el peor frame, y el primer pintado no se mueve: todo esto
 cae en el trozo del mundo 3D, que llega aparte.
+
+---
+
+### 0.15 · Las notas al margen — 17 de agosto
+
+- [x] **Cuatro marcas doradas** repartidas por el mundo, con su nota
+- [x] Con esto queda cerrado **el remate**, y con él todo el plan salvo publicar
+
+**Son la capa de abajo, no un resumen de la de arriba.** En el juego el lore no
+está en los diálogos: está en la descripción de los objetos que uno encuentra, y
+quien no los busca termina la partida sin enterarse. Acá igual. Los nueve
+capítulos cuentan lo que pasó; estas cuatro cuentan cómo funciona el mundo donde
+pasó —de qué está hecha la luz del Árbol, qué era el Anillo en realidad, qué hay
+debajo de la capital, qué promete la Gracia—, y ninguna hace falta para seguir
+la historia.
+
+**No son geometría, y ese es el cambio de criterio de la sesión.** El plan decía
+«requiere raycasting», que es lo primero que se le ocurre a uno: un objeto en la
+escena y un rayo desde el ratón para saber cuál se pulsó. Escribiéndolo aparecen
+tres problemas que no se arreglan después:
+
+- **No se llega con el teclado.** Un objeto dentro de un canvas no está en el
+  orden de tabulación, no recibe foco y no hay manera de dárselo.
+- **No existe para un lector de pantalla.** Un canvas es una imagen: lo que hay
+  dentro no se anuncia.
+- **Y hay que resolver a mano** el hover, el foco, el cursor y el clic, que en
+  un `<button>` vienen puestos.
+
+Así que las marcas son botones de HTML de verdad, y lo único que hace el mundo
+3D es proyectar cuatro puntos y moverlos a su sitio en cada frame —tres líneas
+de cuenta—, escribiendo `style` directo y no estado de React, por el mismo
+motivo por el que el puente con el scroll es un objeto mutable. Comprobado
+tabulando: once tabulaciones desde el principio de la página (nueve del riel,
+el botón del sonido, y la marca), el nombre aparece al recibir el foco, Enter
+abre, Escape cierra y el foco vuelve a la marca de la que salió.
+
+El precio de no usar rayos es que el relieve no las tapa: una marca detrás de
+una montaña se vería igual. Por eso cada una **solo se enciende en el tramo en
+que la cámara la tiene delante**, y ese tramo no se eligió a ojo: se calculó
+dónde cae cada punto en la pantalla en las dieciocho estaciones y se
+descartaron las que quedaban fuera del cuadro o debajo del bloque de texto —que
+va alternando de lado, así que no vale con mirar una.
+
+**El fallo de la sesión: el fundido se comía el tramo.** Estaba escrito por
+dentro (`from` → `from + 0.5` para entrar), así que `from` pasaba a significar
+«acá empieza a aparecer» en vez de «acá se ve». Las dos marcas cuyo tramo
+arranca justo en su capítulo —el Anillo en la estación 0, la Gracia en la 17—
+se quedaban a cero en el único sitio donde tenían que estar encendidas. Con el
+fundido por fuera, `from` y `to` vuelven a querer decir lo que parece que
+dicen.
+
+Y una cosa que no es técnica: **una luz dorada en un paisaje lleno de luces
+doradas es paisaje.** Nada decía que se pudiera pulsar. Ahora la marca enseña
+su nombre al pasar por encima y al recibir el foco, y el colofón lo menciona.
+
+Con la cámara suelta se encienden las cuatro a la vez: ahí la historia está
+parada, el tramo no significa nada, y buscarlas es la excusa para dar la vuelta
+al mundo.
+
+171 fps de media, cero errores, primer pintado 140 KB gzip.

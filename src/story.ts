@@ -256,6 +256,92 @@ export const CHAPTERS = BEATS.map((beat, index) => ({ ...beat.chapter, index }))
 );
 
 /**
+ * LAS GRACIAS
+ * ------------------------------------------------------------
+ * Cuatro marcas doradas repartidas por el mundo. Al pulsarlas se abre una
+ * nota con algo que la crónica no cuenta.
+ *
+ * **Son la capa de abajo, no un resumen de la de arriba.** En el juego el
+ * lore no está en los diálogos: está en la descripción de los objetos que uno
+ * encuentra, y quien no los busca termina la partida sin enterarse. Acá igual.
+ * Los nueve capítulos cuentan lo que pasó; estas cuatro cuentan cómo funciona
+ * el mundo donde pasó, y ninguna hace falta para seguir la historia.
+ *
+ * Cada una vive en un sitio concreto —el Anillo, las ruinas, el barranco, la
+ * llanura— y solo aparece en el tramo en que la cámara la tiene delante. El
+ * tramo no se eligió a ojo: se calculó dónde cae cada punto en la pantalla en
+ * cada una de las dieciocho estaciones, y se descartaron las que quedaban
+ * fuera del cuadro o debajo del bloque de texto.
+ */
+export interface Grace {
+  /** Identificador estable: lo usa el mundo 3D para encontrar su botón. */
+  id: string;
+  /** Dónde está la marca, en coordenadas del mundo. */
+  at: [number, number, number];
+  /**
+   * Entre qué estaciones se ve **del todo**. Fuera de ahí no está en el
+   * cuadro, y el fundido de entrada y salida va por fuera de estos dos
+   * números, no por dentro (ver `Graces.tsx`).
+   */
+  from: number;
+  to: number;
+  label: string;
+  title: string;
+  body: string[];
+}
+
+export const GRACIAS: Grace[] = [
+  {
+    id: 'anillo',
+    at: [14, 132, -196],
+    from: 0,
+    to: 2.6,
+    label: 'El Anillo de Elden',
+    title: 'No era una joya',
+    body: [
+      'El Anillo no era una corona ni un objeto que se guarda: era el conjunto de leyes que sostenían el mundo. Cada Gran Runa es una de esas leyes —la vida, la muerte, la causa y el efecto, el orden mismo—, y estaban ahí arriba a la vista de todos, como se pone a la vista lo que nadie puede tocar.',
+      'Por eso romperlo no fue romper una cosa. Fue quitar las reglas. Lo que vino después no es que la gente se pusiera a pelear: es que dejó de morirse como se moría antes.',
+    ],
+  },
+  {
+    id: 'ruinas',
+    at: [-14, 7, -20],
+    from: 3,
+    to: 5.6,
+    label: 'El Árbol Áureo',
+    title: 'De qué está hecha la luz',
+    body: [
+      'Los muertos de las Tierras Intermedias vuelven al Árbol. No es una metáfora del duelo ni una manera de decirlo: van ahí, y lo que el Árbol devuelve en forma de luz son ellos.',
+      'Los cartógrafos lo dibujaban en el centro del mapa y nadie preguntaba de dónde salía el oro. La respuesta estaba en el panteón de la familia.',
+    ],
+  },
+  {
+    id: 'barranco',
+    at: [38, -10, 10],
+    from: 6.6,
+    to: 8.6,
+    label: 'Bajo la capital',
+    title: 'El segundo mundo',
+    body: [
+      'Debajo de la ciudad hay un país entero hecho de raíces, y no está vacío. Ahí abajo fue a parar todo lo que la Orden Áurea no supo dónde poner: los que nacieron mal, los que sirvieron demasiado tiempo, los que se murieron de una manera que no estaba prevista.',
+      'A ese sitio no llega la Gracia. Lo que llega es la luz de las raíces, que no señala nada y no pide nada a cambio.',
+    ],
+  },
+  {
+    id: 'gracia',
+    at: [16, 6, -34],
+    from: 16.4,
+    to: 17,
+    label: 'La Gracia',
+    title: 'Un hilo, no una promesa',
+    body: [
+      'El hilo dorado que se ve en el suelo señala hacia dónde ir. Eso es todo lo que hace. No dice que allá haya algo, ni que llegar sirva de algo, ni que alguien haya llegado antes.',
+      'Los Sinluz lo siguen igual, y no por fe: lo siguen porque en un mundo donde ya no funcionan las reglas es la única cosa que todavía apunta a alguna parte.',
+    ],
+  },
+];
+
+/**
  * Los nombres que se revuelven al aparecer.
  *
  * Son los semidioses y su madre, y nada más. La tentación es marcar también

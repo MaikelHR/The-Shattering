@@ -571,6 +571,194 @@ body:has(.preloader) {
   color: #f6ecd8;
 }
 
+/* ---- Las marcas doradas y sus notas ---- */
+/* La capa no recibe clics: solo los cuatro botones, que son diminutos. Así
+   todo lo demás sigue llegando al canvas, que es de donde sale la deriva de
+   la cámara con el ratón. */
+.gracias {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.gracia {
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  /* Apagada hasta que el mundo 3D la coloque: sin sitio en la pantalla no
+     debe ni verse ni poder recibir el foco con el tabulador. */
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* La luz: un punto con halo, que es lo que es una Gracia. El halo va en
+   `box-shadow` y no en un degradado de fondo para que crezca con el foco sin
+   repintar nada. */
+.gracia__nombre {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgba(16, 13, 8, 0.86);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--gold);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.gracia:hover .gracia__nombre,
+.gracia:focus-visible .gracia__nombre {
+  opacity: 1;
+}
+
+.gracia__luz {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff3d6;
+  box-shadow:
+    0 0 6px 2px rgba(232, 195, 122, 0.9),
+    0 0 18px 6px rgba(217, 143, 60, 0.45);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: gracia-late 3.4s ease-in-out infinite;
+}
+
+.gracia:hover .gracia__luz,
+.gracia:focus-visible .gracia__luz {
+  transform: scale(1.6);
+  box-shadow:
+    0 0 10px 3px rgba(255, 235, 190, 1),
+    0 0 30px 10px rgba(217, 143, 60, 0.6);
+}
+
+@keyframes gracia-late {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.lore {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+}
+
+.lore__fondo {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 6, 3, 0.62);
+  animation: lore-fondo 0.35s ease both;
+}
+
+.lore__ficha {
+  position: relative;
+  width: min(52ch, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: clamp(24px, 3.4vw, 38px);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgba(16, 13, 8, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: lore-ficha 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.lore__ficha:focus {
+  outline: none;
+}
+
+@keyframes lore-fondo {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes lore-ficha {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+.lore__label {
+  margin: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+.lore__titulo {
+  margin: 0 0 18px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(26px, 3.4vw, 38px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: #f6ecd8;
+}
+
+.lore__parrafo {
+  margin: 0 0 14px;
+  font-size: clamp(15px, 1.7vw, 17px);
+  line-height: 1.72;
+  color: var(--fog);
+}
+
+.lore__parrafo:last-of-type {
+  color: var(--mute);
+}
+
+.lore__cerrar {
+  margin-top: 12px;
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: none;
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s;
+}
+
+.lore__cerrar:hover,
+.lore__cerrar:focus-visible {
+  border-color: var(--gold);
+  color: #f6ecd8;
+}
+
 /* ---- El vuelo libre ---- */
 /* Mientras la cámara está suelta, la página se aparta entera. No se
    desmonta: se apaga. Desmontarla obligaría a ScrollTrigger a remedir las
@@ -858,6 +1046,19 @@ body.esta-libre .progress {
   .rail,
   .progress {
     transition: none;
+  }
+
+  /* Las marcas dejan de latir y las notas aparecen sin entrar. El latido es
+     lo único de toda la página que se mueve solo y sin parar, así que es lo
+     primero que hay que apagar acá. */
+  .gracia__luz {
+    animation: none;
+    opacity: 1;
+  }
+
+  .lore__fondo,
+  .lore__ficha {
+    animation: none;
   }
 }
 

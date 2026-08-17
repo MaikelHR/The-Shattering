@@ -16,6 +16,7 @@ import Roots from './Roots';
 import Leaves from './Leaves';
 import CameraRig from './CameraRig';
 import FreeFlight from './FreeFlight';
+import Graces from './Graces';
 import Sky from './Sky';
 import Atmosphere from './Atmosphere';
 import { TREE, TREE_POSITION, TREE_SCALE } from './erdtree/branches';
@@ -171,6 +172,10 @@ export default function World({ reduced, libre, onReady }: WorldProps) {
             existen mientras lo está. */}
         <CameraRig reduced={reduced} libre={libre} />
         {libre && <FreeFlight reduced={reduced} />}
+
+        {/* Coloca en la pantalla los botones de las cuatro notas. No dibuja
+            nada: solo proyecta cuatro puntos del mundo y mueve el HTML. */}
+        <Graces libre={libre} />
         <Post sun={sun} quality={quality} reduced={reduced} />
       </Canvas>
     </div>

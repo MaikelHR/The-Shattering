@@ -95,6 +95,7 @@ src/
 │   ├── Preloader.tsx     # la runa que se dibuja y el destello que abre
 │   ├── Fracture.tsx      # el pin, la grieta y el golpe del capítulo II
 │   ├── Atlas.tsx         # el mapa del final, dibujándose con el scroll
+│   ├── Lore.tsx          # las cuatro marcas doradas y su ficha
 │   └── Ambience.tsx      # el sonido, sintetizado y apagado por defecto
 └── world/
     ├── World.tsx         # canvas fijo, luces, niebla, calidad
@@ -116,6 +117,7 @@ src/
     ├── Roots.tsx         # las raíces encendidas, cruzando el barranco
     ├── CameraRig.tsx     # la cámara interpolada por el scroll
     ├── FreeFlight.tsx    # y la cámara suelta, cuando la crónica termina
+    ├── Graces.tsx        # coloca en pantalla los botones de las notas
     ├── erdtree/branches.ts    # los árboles, generados por recursión
     ├── ruins/
     │   ├── pieces.ts          # la cantería: columna, sillar, dintel
@@ -180,6 +182,11 @@ entonces la decisión de quemarlo todo.
 - En el vuelo libre, el techo del ángulo polar se recalcula en cada frame: es el
   ángulo al que la cámara toca el suelo, y depende de lo lejos que esté. Un
   valor fijo la deja flotando cuando está cerca o bajo tierra cuando está lejos.
+- Las cuatro marcas de lore **no son geometría**: son `<button>` de HTML que
+  `Graces.tsx` mueve proyectando su punto del mundo en cada frame. Un objeto
+  dentro del canvas no recibe foco, no está en el orden de tabulación y no
+  existe para un lector de pantalla; un botón trae todo eso puesto, y la cuenta
+  de proyectar un punto son tres líneas.
 - `damp()` en vez de `lerp()` crudo: hace el suavizado independiente del framerate.
   La única vez que la cámara no suaviza es el primer frame, donde se planta directo
   en su sitio para que una recarga a mitad de historia no empiece con un viaje.

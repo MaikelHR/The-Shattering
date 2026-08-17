@@ -49,7 +49,7 @@ cinco, la escena deja de leerse como maqueta aunque no sea fotorrealista.
 | Atmósfera viva: hojas, ceniza, sonido | ✅ |
 | GSAP a fondo: la entrada, la Fractura, el texto | ✅ |
 | El remate: el mapa final y el vuelo libre | ✅ |
-| Puntos calientes con el lore | ⏳ |
+| Puntos calientes con el lore | ✅ |
 | Publicar | ⏳ |
 
 **Los cinco momentos que la gente iba a recordar están todos hechos:**
@@ -198,9 +198,13 @@ Lo que la fase C venía a tapar, hecho con geometría.
       llanura, que deja la copa fuera por arriba. El techo del ángulo polar se
       recalcula en cada frame: es el ángulo al que la cámara toca el suelo, y
       depende de lo lejos que esté.
-- [ ] **Puntos calientes**: tres o cuatro marcas doradas en la escena que al
-      pulsarlas abren un panel con el lore. Requiere raycasting, y por eso hay
-      que dejar pasar el clic hacia el canvas donde haga falta.
+- [x] **Puntos calientes**: cuatro marcas doradas con su nota. **Sin
+      raycasting**, que era lo que decía este plan: son botones de HTML que el
+      mundo 3D coloca proyectando su punto en cada frame. Un objeto dentro del
+      canvas no recibe foco, no está en el orden de tabulación y no existe para
+      un lector de pantalla; un `<button>` trae todo eso puesto. El precio es
+      que el relieve no las tapa, y se paga encendiéndolas solo en el tramo en
+      que la cámara las tiene delante.
 
 ### 7 · Publicar
 
@@ -248,7 +252,7 @@ Vale tanto como la lista de arriba: son decisiones tomadas, no olvidos.
 
 | Concepto | Al empezar | Hoy | Objetivo |
 |---|---|---|---|
-| **JS que bloquea el primer pintado** (gzip) | 345 KB | **138 KB** | < 200 KB |
+| **JS que bloquea el primer pintado** (gzip) | 345 KB | **140 KB** | < 200 KB |
 | JS total (gzip) | 345 KB | 583 KB | — |
 | Primer pintado | — | 84 ms (local) | < 2,5 s en conexión buena |
 | Imágenes | 0 | 965 KB (dos texturas de roca) | < 1,5 MB |

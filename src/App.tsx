@@ -9,7 +9,9 @@ import Preloader, { PRELOADER_TIMEOUT } from './components/Preloader';
 import Fracture from './components/Fracture';
 import Atlas from './components/Atlas';
 import Ambience from './components/Ambience';
+import Lore from './components/Lore';
 import { ALIGN, BEATS, CHAPTERS } from './story';
+import type { Grace } from './story';
 import { setChapterAnchors, writeScroll } from './scrollState';
 
 /**
@@ -59,6 +61,8 @@ export default function App() {
   const [revealed, setRevealed] = useState(false);
   /** La cámara está suelta: la lleva el visitante y la crónica espera. */
   const [libre, setLibre] = useState(false);
+  /** La nota al margen que está abierta, si hay alguna. */
+  const [lore, setLore] = useState<Grace | null>(null);
   // Se lee en el inicializador, no en un efecto posterior: si arrancara
   // en false, quien pide movimiento reducido vería el primer render
   // animado antes de que la corrección llegue.
@@ -291,6 +295,10 @@ export default function App() {
           y además el navegador no lo permitiría. */}
       <Ambience reduced={reduced} />
 
+      {/* Las cuatro marcas y la ficha que abren. Las coloca el mundo 3D, así
+          que van fuera del contenido suavizado como todo lo que es fijo. */}
+      <Lore open={lore} onOpen={setLore} onClose={() => setLore(null)} />
+
       {/* El scroll suavizado envuelve SOLO el texto. Todo lo fijo —el canvas,
           el riel, la barra de progreso y la entrada— vive fuera a propósito:
           ScrollSmoother mueve `#smooth-content` con un transform, y lo que
@@ -327,7 +335,8 @@ export default function App() {
 
             <footer className="colophon">
               <p className="colophon__note">
-                Mundo generado en tiempo real. La cámara sigue tu scroll: no hay video.
+                Mundo generado en tiempo real. La cámara sigue tu scroll: no hay video. Las
+                cuatro marcas doradas del paisaje se pueden pulsar.
               </p>
               <p className="colophon__tech">React · Three.js · GSAP ScrollTrigger</p>
               <p className="colophon__legal">
