@@ -27,6 +27,31 @@ import { setChapterAnchors, writeScroll } from './scrollState';
  */
 const World = lazy(() => import('./world/World'));
 
+/**
+ * ¿Puede este navegador dibujar el mundo?
+ *
+ * Se pregunta ANTES de montar nada, y no es una precaución de manual: sin
+ * WebGL —un portátil viejo, la aceleración desactivada, una máquina virtual—
+ * el renderer de three lo intenta igual y tira una excepción por cada intento.
+ * Ocho errores en consola y un canvas vacío que no le dice nada a nadie.
+ *
+ * Lo bueno es que la página aguanta sin él: el texto, el riel y el cielo en
+ * degradado son HTML y CSS, así que la crónica se lee entera. Lo único que
+ * hace falta es no montar el motor, no esperar los seis segundos del tope de
+ * la entrada, y avisar de por qué no hay paisaje.
+ *
+ * Se calcula una sola vez al cargar el módulo: crear un contexto de prueba
+ * cuesta un par de milisegundos y el resultado no cambia a mitad de visita.
+ */
+const HAY_WEBGL = (() => {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+  } catch {
+    return false;
+  }
+})();
+
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, useGSAP);
 
 /**
@@ -56,7 +81,7 @@ export default function App() {
   const smoother = useRef<ScrollSmoother | null>(null);
   const [active, setActive] = useState(0);
   /** El mundo 3D ya dibujó su primer frame. */
-  const [worldReady, setWorldReady] = useState(false);
+  const [worldReady, setWorldReady] = useState(!HAY_WEBGL);
   /** La entrada terminó de salir: se puede desmontar y soltar el scroll. */
   const [revealed, setRevealed] = useState(false);
   /** La cámara está suelta: la lleva el visitante y la crónica espera. */
@@ -262,9 +287,17 @@ export default function App() {
     <>
       {/* El fallback va vacío a propósito: lo que se ve mientras tanto es la
           entrada, que está por encima y no depende de este Suspense. */}
-      <Suspense fallback={null}>
-        <World reduced={reduced} libre={libre} onReady={() => setWorldReady(true)} />
-      </Suspense>
+      {HAY_WEBGL ? (
+        <Suspense fallback={null}>
+          <World reduced={reduced} libre={libre} onReady={() => setWorldReady(true)} />
+        </Suspense>
+      ) : (
+        /* El cielo lo pinta el CSS de `.world`, no el canvas, y ese div vive
+           dentro del mundo 3D: sin montarlo, la página se quedaba en negro
+           plano. Puesto vacío, el degradado sigue ahí y lo que falta —el
+           paisaje— se lee como una noche cerrada y no como un error. */
+        <div className="world" aria-hidden="true" />
+      )}
 
       {libre && (
         <div className="vuelo">
@@ -313,6 +346,17 @@ export default function App() {
                 El Anillo se rompió y la luz quedó repartida entre quienes no supieron cuidarla.
               </p>
               <p className="hero__scroll hero__line">Desplazate para descender</p>
+
+              {/* Solo cuando no hay con qué dibujar. Va aquí y no en un cartel
+                  aparte porque el visitante ya está mirando este bloque, y lo
+                  que necesita no es una alerta: es saber que lo que ve es todo
+                  lo que hay y que la crónica se lee igual. */}
+              {!HAY_WEBGL && (
+                <p className="hero__aviso hero__line">
+                  Tu navegador no puede dibujar en 3D (le falta WebGL), así que el paisaje no
+                  está. El texto es el mismo y la crónica se lee entera.
+                </p>
+              )}
             </header>
 
             {/* Una sección por estación. Las que no llevan capítulo ocupan

@@ -811,3 +811,57 @@ parada, el tramo no significa nada, y buscarlas es la excusa para dar la vuelta
 al mundo.
 
 171 fps de media, cero errores, primer pintado 140 KB gzip.
+
+---
+
+### 0.16 · Antes de publicar — 17 de agosto
+
+- [x] **Los seis blancos táctiles a 44 píxeles**
+- [x] **Aviso cuando el navegador no puede dibujar en 3D**
+- [x] **`og:image`**, que era lo único que faltaba para que el enlace se vea
+
+**Seis, no tres.** Había mirado tres a ojo y me faltaban la mitad. Medidos
+todos los elementos con los que se puede interactuar, **los seis fallaban, y
+todos por el alto**: el enlace del riel 27, el botón de sonido 40, la marca de
+lore 38, «cerrar» 36, «soltar la cámara» 38 y «volver a la crónica» 33. La
+recomendación es 44 en los dos ejes.
+
+Lo interesante es que **ninguno podía crecer a lo visible sin romper algo**. El
+círculo del riel mide 27 porque tiene que caber un «VIII»; el punto de una
+Gracia mide ocho píxeles porque es una luz, no un botón. Así que el aumento va
+todo en relleno invisible, y en el riel además hay que devolver lo que se
+llevó: el hueco entre elementos baja de 22 a 5 para que la distancia entre
+centros siga siendo 49. Comprobado después: 49 sigue siendo 49, el riel sigue
+centrado y la línea vertical sigue naciendo dentro del primer círculo y
+muriendo dentro del último.
+
+**Sin WebGL la página aguantaba, pero mal.** Simulando un equipo sin
+aceleración —un portátil viejo, una máquina virtual, la aceleración
+desactivada— el texto, el riel y el cielo seguían ahí y la crónica se leía
+entera: la arquitectura de «el texto primero» paga exactamente aquí. Pero tres
+cosas fallaban:
+
+- **Ocho errores en consola.** El renderer de three intenta crear el contexto
+  igual y lanza una excepción por intento.
+- **Seis segundos de espera.** La entrada solo se levantaba por el tope, porque
+  el aviso de «mundo listo» llega desde un frame que no iba a llegar nunca.
+- **Y nadie decía por qué no hay paisaje.**
+
+Ahora se pregunta antes de montar nada. Sin WebGL no se monta el motor —cero
+errores—, la entrada se abre en 3,3 segundos y el hero lleva una nota al pie
+explicando qué pasa. Con un detalle que casi se me escapa: **el cielo en
+degradado lo pinta el CSS del div del mundo**, que vive dentro del componente
+3D. Sin montarlo, la página se quedaba en negro plano. Va puesto vacío, y lo
+que falta se lee como una noche cerrada y no como un error.
+
+**La `og:image`** es una captura del capítulo VIII a 1200×630: el Árbol
+ardiendo bajo el Anillo roto, con el bloque de texto de «Hay que quemar el
+Árbol». En JPEG y no en PNG —118 KB contra 534, y a tamaño de miniatura no se
+distinguen—, y con el riel, la barra de progreso y el botón de sonido
+escondidos para la toma, que a ese tamaño son ruido. El `twitter:card` sube por
+fin de `summary` a `summary_large_image`.
+
+**Queda un cabo suelto atado a la publicación:** la ruta de la imagen es
+relativa y varios rastreadores exigen una URL absoluta. En cuanto haya dominio
+hay que cambiarla y añadir `og:url`. Está anotado en el propio `index.html`,
+que es donde va a mirar quien lo haga.

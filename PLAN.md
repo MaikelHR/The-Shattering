@@ -213,9 +213,18 @@ Lo que la fase C venía a tapar, hecho con geometría.
       entera: las dieciocho estaciones, en un teléfono real y no solo
       redimensionando la ventana.
 - [ ] **Safari**, que es donde WebGL se comporta distinto.
-- [ ] **`og:image`.** Una captura del capítulo VIII a 1200×630, que es la imagen
-      más fuerte que tenemos. Hasta que exista, el `twitter:card` sigue en
-      `summary`.
+- [x] **`og:image`.** Captura del capítulo VIII a 1200×630, en JPEG (118 KB
+      contra 534 del PNG). `twitter:card` sube a `summary_large_image`.
+      **Falta un paso atado al deploy:** la ruta es relativa y varios
+      rastreadores exigen absoluta. En cuanto haya dominio, cambiarla y añadir
+      `og:url`. Anotado en el propio `index.html`.
+- [x] **Los blancos táctiles, a 44 píxeles.** Estaban los seis por debajo, y
+      todos por el alto. Ninguno podía crecer a lo visible sin romper la
+      composición, así que el aumento va en relleno invisible.
+- [x] **Aviso cuando no hay WebGL.** Antes tiraba ocho errores, esperaba los
+      seis segundos del tope de la entrada y no explicaba nada. Ahora se
+      pregunta antes de montar el motor: cero errores, la entrada se abre en
+      3,3 s y el hero lleva una nota al pie.
 - [ ] **Lighthouse**: por encima de 90 en accesibilidad; en rendimiento, con esta
       cantidad de WebGL, apuntar a 75-85 es honesto.
 - [ ] **Deploy en Vercel.**
