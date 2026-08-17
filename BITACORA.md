@@ -680,3 +680,74 @@ Chrome estaba minimizada, el `requestAnimationFrame` congelado y con él el
 reloj de GSAP, así que la timeline se quedaba en el fotograma cero —donde todo
 está invisible a propósito. Es la cuarta vez. El síntoma que la delata es que
 un `evaluate` que espera un frame no vuelve nunca.
+
+---
+
+### 0.14 · Las raíces parecían varillas y el otro árbol era verde — 15 de agosto
+
+Dos cosas que se veían mal, y las causas resultaron ser opuestas: una era de
+forma y la otra, de material.
+
+**LAS RAÍCES.** Se leían como un juego de palitos luminosos, o como una rama
+del Árbol puesta ahí abajo. Dos motivos, los dos medibles:
+
+- **Eran rectas.** El generador entrega tramos rectos con un codo duro en cada
+  nudo, que es lo correcto para una rama: una rama busca la luz y va a por
+  ella. Una raíz no; una raíz va rodeando lo que se encuentra. Ahora el
+  generador acepta `bend`, y cada tramo se dibuja como una cadena de cuatro
+  cilindros que giran siempre hacia el mismo lado —un eje de giro por rama y no
+  uno por tramo, que si cambia en cada paso sale un zigzag y no un arco.
+- **Casi no se afinaban.** El grosor iba de 1,2 a 0,17: una relación de **uno a
+  siete**, o sea un cable. Con `taperAlong` (afinado por dentro del propio
+  tramo) y `trunkTaper` (el eje adelgazando más rápido), la relación pasa a
+  **uno a cincuenta y nueve**: gorda como un brazo donde entra en la roca, un
+  pelo donde termina.
+
+Los tres parámetros son opcionales y por defecto no hacen nada, así que el
+Árbol Áureo sale idéntico: comprobado, 5840 ramas y 18,31 de alto antes y
+después.
+
+Y quedaba un tercer fallo, que solo se vio con la forma ya arreglada: **la luz
+no distinguía lo gordo de lo fino.** El brillo del generador sube con la
+generación, y como el eje de la raíz recorre ocho, su tramo final ya iba por el
+80% de la escala: salía casi tan encendido como los pelos del final y el
+conjunto era una masa blanca de un solo valor. Ahora el brillo se saca del
+**radio**, que está guardado en la propia matriz de cada instancia. Además de
+verse mejor es la lectura física correcta: lo que se ve por transparencia es lo
+delgado. Un brazo de raíz es madera oscura; un pelo de raíz es luz.
+
+**EL ÁRBOL SAGRADO.** Acá lo importante es lo que NO se tocó. Antes de cambiar
+nada medí su proporción contra el Áureo, que es el que se ve bien:
+
+| | alto | ancho | relación | tronco pelado |
+|---|---|---|---|---|
+| Áureo | 117 | 138 | 0,85 | 18% |
+| Sagrado | 58 | 69 | 0,84 | 21% |
+
+**La misma.** Los dos son más anchos que altos. Iba a corregir la silueta y
+habría arreglado lo que no estaba roto.
+
+Lo que estaba mal era la luz, y eran tres cosas a la vez:
+
+- **No tenía degradado.** El Áureo lleva el nivel de cada rama en un atributo y
+  la emisión sube hacia las puntas: tronco de madera, ramitas ardiendo. Este
+  emitía lo mismo de arriba abajo y salía una silueta plana de un solo valor.
+- **No se le veía el follaje.** Las motas medían medio metro al 34% de
+  opacidad: a ciento cincuenta unidades, cuatro píxeles. Lo que quedaba era el
+  esqueleto pelado, que se lee como árbol muerto en invierno y no como árbol
+  que no llegó a florecer.
+- **Era verde**, y eso es lo que más lo delataba. Busqué cómo es en el juego:
+  la paleta de este árbol es **blanco, plata y oro sin alear** —una luz pálida
+  y fría que parodia el oro del Áureo—, nunca verde. Un verde apagado contra un
+  mundo dorado no lee como «otro árbol», lee como vegetación muerta. Ahora es
+  hueso y plata: **el contraste con el oro se consigue quitándole color, no
+  cambiándoselo**, que además respeta la regla de la paleta —no hay un solo
+  azul en toda la página.
+
+Y flotaba. La altura salía de preguntar por el suelo **en un punto**, y ahí
+arriba es cordillera: bajo la huella del tronco el terreno va de 25 a 34, así
+que un lado quedaba enterrado y el otro colgando cinco unidades en el aire.
+Ahora se busca el punto más bajo de la huella y se hunde tres más.
+
+171 fps de media, 60 el peor frame, y el primer pintado no se mueve: todo esto
+cae en el trozo del mundo 3D, que llega aparte.

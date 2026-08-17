@@ -39,6 +39,34 @@ export interface TreeParams {
    * viejo de uno joven: el tronco sube entero y la copa se abre arriba.
    */
   trunkLevels: number;
+  /**
+   * Cuánto se dobla cada rama **a lo largo de sí misma**, en radianes. Cero
+   * —lo normal— deja los tramos rectos, que es lo que quiere una rama: una
+   * rama busca la luz y va a por ella.
+   *
+   * Una raíz no. Una raíz va rodeando lo que se encuentra, y por eso se lee
+   * curva. Sin esto, las raíces salían varillas rectas con codos duros: la
+   * silueta delataba que las tres cosas del proyecto —el Árbol, el otro árbol
+   * y las raíces— salen del mismo sitio, cuando la gracia era justo que no se
+   * notara.
+   */
+  bend?: number;
+  /**
+   * En cuántos cilindros se parte cada rama para poder doblarse. Solo se usa
+   * si `bend` no es cero, y multiplica la cuenta de ramas por este número.
+   */
+  bendSteps?: number;
+  /**
+   * Cuánto se afina cada rama a lo largo de sí misma, de 0 a 1. Lo normal es
+   * cero: el afinado ocurre entre generaciones y ya. Una raíz gorda que
+   * termina en un pelo necesita además afinarse por dentro del tramo.
+   */
+  taperAlong?: number;
+  /**
+   * Cuánto conserva el tronco de su grosor en cada generación. Por debajo de
+   * 0,9 el eje se afina rápido, que es lo que hace una raíz y no un cable.
+   */
+  trunkTaper?: number;
 }
 
 export const DEFAULT_TREE: TreeParams = {
@@ -100,18 +128,63 @@ export function buildTree(params: TreeParams = DEFAULT_TREE): TreeGeometryData {
   const scale = new Vector3();
   const mid = new Vector3();
 
+  const bend = params.bend ?? 0;
+  const steps = bend > 0 ? Math.max(2, params.bendSteps ?? 4) : 1;
+  const taperAlong = params.taperAlong ?? 0;
+  const trunkTaper = params.trunkTaper ?? 0.9;
+
   const grow = (base: Vector3, dir: Vector3, length: number, radius: number, level: number) => {
-    const end = base.clone().addScaledVector(dir, length);
+    const end = base.clone();
+    // Dónde APUNTA la rama al terminar. Con tramos rectos es la dirección de
+    // siempre; con tramos curvos no, y de ahí tienen que salir los hijos: si
+    // salieran de la dirección inicial, la curva se rompería en cada nudo y
+    // volverían los codos que se querían quitar.
+    const outDir = dir.clone();
+
+    if (steps === 1) {
+      end.addScaledVector(dir, length);
+
+      // El cilindro base mide una unidad y está centrado: se lleva al medio de
+      // la rama, se gira desde el eje Y hasta la dirección y se estira.
+      mid.copy(base).add(end).multiplyScalar(0.5);
+      quat.setFromUnitVectors(UP, dir);
+      scale.set(radius, length, radius);
+
+      matrices.push(new Matrix4().compose(mid, quat, scale));
+      glowValues.push(level / params.levels);
+    } else {
+      // Una rama doblada es una cadena de cilindros cortos que giran siempre
+      // hacia el mismo lado. El eje de giro se sortea una vez por rama y no
+      // una por tramo: cambiándolo en cada paso sale un zigzag, no un arco.
+      perpendicular(dir, axis).applyAxisAngle(dir, random() * Math.PI * 2);
+      const bendAxis = axis.clone();
+      const perStep = (bend / steps) * (0.5 + random());
+      const stepLength = length / steps;
+      const from = base.clone();
+
+      for (let s = 0; s < steps; s++) {
+        const along = (s + 0.5) / steps;
+        const r = radius * (1 - taperAlong * along);
+
+        end.copy(from).addScaledVector(outDir, stepLength);
+        mid.copy(from).add(end).multiplyScalar(0.5);
+        quat.setFromUnitVectors(UP, outDir);
+        // Un dos por ciento de más en el largo: sin ese solape se ve la junta
+        // entre cilindro y cilindro cada vez que la cadena dobla.
+        scale.set(r, stepLength * 1.02, r);
+
+        matrices.push(new Matrix4().compose(mid, quat, scale));
+        // El brillo también avanza dentro de la rama, no solo entre
+        // generaciones: es lo que convierte el degradado en continuo en vez
+        // de en bandas de un tramo entero cada una.
+        glowValues.push((level + (s + 1) / steps) / params.levels);
+
+        from.copy(end);
+        outDir.applyAxisAngle(bendAxis, perStep).normalize();
+      }
+    }
+
     height = Math.max(height, end.y);
-
-    // El cilindro base mide una unidad y está centrado: se lleva al medio de la
-    // rama, se gira desde el eje Y hasta la dirección y se estira.
-    mid.copy(base).add(end).multiplyScalar(0.5);
-    quat.setFromUnitVectors(UP, dir);
-    scale.set(radius, length, radius);
-
-    matrices.push(new Matrix4().compose(mid, quat, scale));
-    glowValues.push(level / params.levels);
 
     if (level >= params.levels) {
       tips.push(end);
@@ -119,6 +192,8 @@ export function buildTree(params: TreeParams = DEFAULT_TREE): TreeGeometryData {
     }
     if (level >= params.levels - 2) tips.push(end);
 
+    // A partir de acá, `dir` es la dirección de SALIDA de la rama.
+    dir = outDir;
     const roll = random() * Math.PI * 2;
 
     // ---- Tramo de tronco ----
@@ -136,7 +211,7 @@ export function buildTree(params: TreeParams = DEFAULT_TREE): TreeGeometryData {
         end,
         trunkDir,
         length * (0.86 + random() * 0.08),
-        radius * (0.9 - level * 0.015),
+        radius * (trunkTaper - level * 0.015),
         level + 1,
       );
 
